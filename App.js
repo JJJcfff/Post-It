@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import ChatBot from './screens/ChatBot';
-import StickyNotesMap from './screens/StickyNotesMap';
+import StickyNotesMap from './screens/StickyNotesMap.js';
 
 const Stack = createStackNavigator();
 

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Button, KeyboardAvoidingView, StyleSheet, TextInput, View, Text } from 'react-native';
-import { firebaseauth } from '../../FirebaseConfig';
+import { firebaseauth } from '../FirebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const Login = ({ navigation }) => {
@@ -8,6 +8,18 @@ const Login = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const auth = firebaseauth;
+
+  // Debug mode credentials
+  const debugEmail = '1@1.com';
+  const debugPassword = '111111';
+  const debug = true;
+
+  useEffect(() => {
+    if (debug) {
+      setEmail(debugEmail);
+      setPassword(debugPassword);
+    }
+  }, []);
 
   const signIn = async () => {
     setLoading(true);
@@ -73,6 +85,7 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
     margin: 10,
+    paddingHorizontal: 10,
   },
   button: {
     width: 300,

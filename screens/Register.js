@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Button, KeyboardAvoidingView, StyleSheet, TextInput, View, Text } from 'react-native';
-import { firebaseauth } from '../../FirebaseConfig';
+import { firebaseauth } from '../FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); 
   const [loading, setLoading] = useState(false);
   const auth = firebaseauth;
 
   const signUp = async () => {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
@@ -38,6 +43,14 @@ const Register = ({ navigation }) => {
           placeholder='Password'
           value={password}
           onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder='Confirm Password' 
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
           secureTextEntry
         />
 
@@ -73,6 +86,7 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
     margin: 10,
+    paddingHorizontal: 10,
   },
   button: {
     width: 300,
