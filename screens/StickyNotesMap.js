@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Modal, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, UrlTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import { useEffect } from 'react/cjs/react.development';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc } from 'firebase/firestore';
@@ -248,13 +248,19 @@ const StickyNotesMap = () => {
         <MapView
           style={styles.map}
           onLongPress={handleLongPress}
+          mapType='mutedStandard'
+          showsBuildings={false}
+          showsIndoors={false}
+          cameraZoomRange={{ min: 0, max: 20 }}
+          minZoomLevel={0}
+          maxZoomLevel={20}
         >
           {markers.map((marker) => (
             <Marker
               key={marker.id}
               coordinate={marker.coordinate}
               onPress={() => handleMarkerPress(marker)}
-              draggable
+              draggable={marker.user === userId}
               onDragEnd={(e) => handleDragEnd(e, marker.id)}
             >
               <View style={styles.stickyNote}>
