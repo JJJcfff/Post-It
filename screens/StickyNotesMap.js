@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Keyboard, Text, Modal, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import { useEffect } from 'react/cjs/react.development';
@@ -220,6 +220,7 @@ const StickyNotesMap = () => {
     updateMarker(updatedMarker);
     setSelectedMarker(updatedMarker);
     setCommentText('');
+    Keyboard.dismiss();
   };
 
   const handleDragEnd = (e, markerId) => {
@@ -384,6 +385,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: '90%',
+    maxHeight: '80%',
     backgroundColor: 'white',
     borderRadius: 20,
     padding: 30,
@@ -436,6 +438,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     marginBottom: 20,
+    paddingTop: 10,
   },
   button: {
     backgroundColor: '#4CAF50',
@@ -457,6 +460,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     width: '100%',
+    paddingTop: 10,
   },
   likeButton: {
     backgroundColor: '#2196F3',
@@ -473,7 +477,8 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 10,
-    paddingHorizontal: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     flex: 1,
   },
   addButton: {
@@ -488,7 +493,6 @@ const styles = StyleSheet.create({
   },
   commentList: {
     width: '100%',
-    maxHeight: 150,
   },
   comment: {
     fontSize: 14,
