@@ -25,7 +25,8 @@ const Login = ({ navigation }) => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate('StickyNotesMap'); // Navigate to StickyNotesMap on successful login
+      // navigation.navigate('StickyNotesCanvas'); 
+      navigation.navigate('StickyNotesMap'); 
     } catch (error) {
       console.log(error);
       alert('Invalid email or password');

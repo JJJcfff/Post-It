@@ -36,6 +36,10 @@ yarn-error.*
 # vscode
 .vscode/
 
+# ios and android
+/ios
+/android
+
 
 # Logs
 logs

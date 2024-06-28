@@ -6,7 +6,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState(''); 
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const auth = firebaseauth;
 
@@ -18,10 +18,15 @@ const Register = ({ navigation }) => {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigation.navigate('StickyNotesMap'); // Navigate to StickyNotesMap on successful registration
+      navigation.navigate('StickyNotesCanvas'); // Navigate to StickyNotesMap on successful registration
     } catch (error) {
       console.log(error);
-      alert('Invalid email or password');
+      if (error.code === 'auth/email-already-in-use') {
+        alert('Email already in use');
+      }
+      else {
+        alert('Invalid email or password');
+      }
     }
     setLoading(false);
   };
@@ -48,7 +53,7 @@ const Register = ({ navigation }) => {
 
         <TextInput
           style={styles.input}
-          placeholder='Confirm Password' 
+          placeholder='Confirm Password'
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           secureTextEntry
