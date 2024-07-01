@@ -11,7 +11,7 @@ const firestore = getFirestore(firebaseapp);
 
 
 const StickyNotesMap = () => {
-  const MAX_NOTE_LENGTH = 200;
+  const MAX_NOTE_LENGTH = 200; // Maximum number of characters for a note
 
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
