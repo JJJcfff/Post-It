@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Keyboard, Text, Modal, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
+import MapView, { Marker, UrlTile, LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import { useEffect } from 'react/cjs/react.development';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc } from 'firebase/firestore';
@@ -67,7 +67,6 @@ const StickyNotesMap = () => {
   useEffect(() => {
     getAllMarkers();
   }, []);
-
 
   //add a marker to firestore
   const addMarker = async (e) => {
@@ -223,19 +222,25 @@ const StickyNotesMap = () => {
     Keyboard.dismiss();
   };
 
-  const handleDragEnd = (e, markerId) => {
-    const newCoordinate = e.nativeEvent.coordinate;
-    const updatedMarker = {
-      ...selectedMarker,
-      coordinate: newCoordinate
-    };
+  const handleDragStart = (e) => {
+    console.log('Drag started');
+  };
 
-    setMarkers((prevMarkers) =>
-      prevMarkers.map((marker) =>
-        marker.id === markerId ? updatedMarker : marker
-      )
-    );
-    updateMarker(updatedMarker); // Update Firestore
+  const handleDragEnd = (e, markerId) => {
+    if (selectedMarker) { // Check if a marker is selected
+      const newCoordinate = e.nativeEvent.coordinate;
+      const updatedMarker = {
+        ...selectedMarker,
+        coordinate: newCoordinate
+      };
+
+      setMarkers((prevMarkers) =>
+        prevMarkers.map((marker) =>
+          marker.id === markerId ? updatedMarker : marker
+        )
+      );
+      updateMarker(updatedMarker);
+    }
   };
 
 
@@ -256,12 +261,17 @@ const StickyNotesMap = () => {
           minZoomLevel={0}
           maxZoomLevel={20}
         >
+          <LocalTile
+            pathTemplate={'../assets/tiles/white_tile.png'}
+            tileSize={256}
+          />          
           {markers.map((marker) => (
             <Marker
               key={marker.id}
               coordinate={marker.coordinate}
               onPress={() => handleMarkerPress(marker)}
               draggable={marker.user === userId}
+              onDragStart={(e) => handleDragStart(e)}
               onDragEnd={(e) => handleDragEnd(e, marker.id)}
             >
               <View style={styles.stickyNote}>
