@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Keyboard, Text, Modal, TextInput, Button, StyleSheet, KeyboardAvoidingView, Platform, FlatList, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
-import MapView, { Marker, UrlTile, LocalTile } from 'react-native-maps';
+import MapView, { Marker, UrlTile, LocalTile, PROVIDER_GOOGLE } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import { useEffect } from 'react/cjs/react.development';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
+import customMapStyle from '../assets/customMapStyle.json';
 
 const firestore = getFirestore(firebaseapp);
-
 
 
 const StickyNotesMap = () => {
@@ -253,8 +253,9 @@ const StickyNotesMap = () => {
       ) : (
         <MapView
           style={styles.map}
+          provider={PROVIDER_GOOGLE}
+          customMapStyle={customMapStyle}
           onLongPress={handleLongPress}
-          mapType='mutedStandard'
           showsBuildings={false}
           showsIndoors={false}
           cameraZoomRange={{ min: 0, max: 20 }}
@@ -264,7 +265,7 @@ const StickyNotesMap = () => {
           <LocalTile
             pathTemplate={'../assets/tiles/white_tile.png'}
             tileSize={256}
-          />          
+          />
           {markers.map((marker) => (
             <Marker
               key={marker.id}
