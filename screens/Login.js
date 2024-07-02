@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator, Button, KeyboardAvoidingView, StyleSheet, TextInput, View, Text } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  StyleSheet,
+  TextInput,
+  View,
+  Text,
+  TouchableOpacity,
+  ImageBackground,
+} from 'react-native';
 import { firebaseauth } from '../FirebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
@@ -34,68 +43,114 @@ const Login = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView behavior='padding'>
-        <Text style={styles.text}>Login</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Email'
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize='none'
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder='Password'
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
+    <ImageBackground
+      source={{ uri: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f' }}
+      style={styles.background}
+    >
+      <KeyboardAvoidingView behavior="padding" style={styles.container}>
+        <Text style={styles.title}>Welcome to Post-It</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            placeholderTextColor="#999"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholderTextColor="#999"
+          />
+        </View>
         {loading ? (
-          <ActivityIndicator size='large' color='blue' />
+          <ActivityIndicator size="large" color="#fff" />
         ) : (
           <>
-            <Button title='Sign In' onPress={signIn} />
-            <Button title='Create Account' onPress={() => navigation.navigate('Register')} />
+            <TouchableOpacity style={styles.button} onPress={signIn}>
+              <Text style={styles.buttonText}>Sign In</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonSecondary}
+              onPress={() => navigation.navigate('Register')}
+            >
+              <Text style={styles.buttonSecondaryText}>Create Account</Text>
+            </TouchableOpacity>
           </>
         )}
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground>
   );
 };
 
 export default Login;
 
 const styles = StyleSheet.create({
-  text: {
-    fontSize: 30,
-    textAlign: 'center',
-    margin: 10,
-  },
-  container: {
+  background: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 36,
+    color: '#fff',
+    marginBottom: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 20,
   },
   input: {
-    width: 300,
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    margin: 10,
+    width: '100%',
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
     paddingHorizontal: 10,
+    marginVertical: 10,
+    color: '#fff',
   },
   button: {
-    width: 300,
-    height: 40,
-    backgroundColor: 'blue',
-    justifyContent: 'center',
+    backgroundColor: '#1e90ff',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '100%',
     alignItems: 'center',
-    margin: 10,
+    marginVertical: 10,
   },
   buttonText: {
-    color: 'white',
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  buttonSecondary: {
+    borderColor: '#fff',
+    borderWidth: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonSecondaryText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
