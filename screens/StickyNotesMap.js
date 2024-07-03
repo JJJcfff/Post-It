@@ -7,6 +7,7 @@ import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, d
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import customMapStyle from '../assets/customMapStyle.json';
 
+console.log(customMapStyle);
 const firestore = getFirestore(firebaseapp);
 
 
