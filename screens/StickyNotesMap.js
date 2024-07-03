@@ -3,16 +3,14 @@ import { View, Keyboard, Text, Modal, TextInput, Button, StyleSheet, KeyboardAvo
 import MapView, { Marker, UrlTile, LocalTile, PROVIDER_GOOGLE } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import { useEffect } from 'react/cjs/react.development';
-import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import customMapStyle from '../assets/customMapStyle.json';
 
-console.log(customMapStyle);
 const firestore = getFirestore(firebaseapp);
 
-
 const StickyNotesMap = () => {
-  const MAX_NOTE_LENGTH = 200; // Maximum number of characters for a note
+  const MAX_NOTE_LENGTH = 200;
 
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -22,7 +20,9 @@ const StickyNotesMap = () => {
   const [editVisible, setEditVisible] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [commentText, setCommentText] = useState('');
-
+  const [tagText, setTagText] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [filteredMarkers, setFilteredMarkers] = useState([]);
 
   //firebase helper functions****************************************************
   //get current user's UID
@@ -44,7 +44,6 @@ const StickyNotesMap = () => {
     return () => unsubscribe();
   }, []);
 
-
   //get all markers from firestore
   const getAllMarkers = async () => {
     setLoading(true);
@@ -53,6 +52,7 @@ const StickyNotesMap = () => {
       const markersSnapshot = await getDocs(markersCollection);
       const markersList = markersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setMarkers(markersList);
+      setFilteredMarkers(markersList);
     } catch (error) {
       console.error("Error fetching markers: ", error);
       Toast.show({
@@ -69,6 +69,18 @@ const StickyNotesMap = () => {
     getAllMarkers();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(firestore, 'stickyNoteMarkers'), (snapshot) => {
+      const markersList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMarkers(markersList);
+      setFilteredMarkers(markersList);
+    });
+  
+    // Clean up the listener on unmount
+    return () => unsubscribe();
+  }, []);
+  
+
   //add a marker to firestore
   const addMarker = async (e) => {
     try {
@@ -79,6 +91,7 @@ const StickyNotesMap = () => {
         user: userId,
         coordinate: e.nativeEvent.coordinate,
         text: 'New Sticky Note',
+        tags: [],
         likes: 0,
         comments: [],
         createdAt: serverTimestamp(),
@@ -91,7 +104,12 @@ const StickyNotesMap = () => {
       console.log('New marker: ', newMarker);
 
       setMarkers([...markers, newMarker]);
+      setFilteredMarkers([...markers, newMarker]);
       setSelectedMarker(newMarker);
+
+      setNoteText('');  // Reset noteText
+      setTagText('');   // Reset tagText
+
       setModalVisible(true);
       setEditVisible(true);
     } catch (error) {
@@ -108,8 +126,15 @@ const StickyNotesMap = () => {
   const updateMarker = async (updatedMarker) => {
     try {
       const markerRef = doc(firestore, 'stickyNoteMarkers', updatedMarker.id);
+      //verify if the tags is appropriate
+      if (updatedMarker.tags) {
+        updatedMarker.tags = updatedMarker.tags.filter(tag => tag.trim() !== '');
+      } else {
+        updatedMarker.tags = [];
+      }
       await updateDoc(markerRef, {
         text: updatedMarker.text,
+        tags: updatedMarker.tags,
         comments: updatedMarker.comments,
         likes: updatedMarker.likes,
         coordinate: updatedMarker.coordinate,
@@ -140,15 +165,40 @@ const StickyNotesMap = () => {
     }
   };
 
-
   const handleLongPress = (e) => {
     addMarker(e);
   };
 
   const handleMarkerPress = (marker) => {
     setSelectedMarker(marker);
-    setNoteText(marker.text);
+    if (marker.text) { setNoteText(marker.text); }
+    if (marker.tags) { setTagText(marker.tags.join(', ')); }
+    //go to the first tab
+    setEditVisible(false);
     setModalVisible(true);
+  };
+
+  const verifyTagFormat = (tagText) => { //tags must be less than 20 characters and separated by commas and less than 10 tags
+    const tags = tagText.split(',').map(tag => tag.trim());
+    if (tags.length > 10) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Too many tags',
+      });
+      return false;
+    }
+    for (let i = 0; i < tags.length; i++) {
+      if (tags[i].length > 20) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Tag is too long',
+        });
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleSave = () => {
@@ -160,9 +210,17 @@ const StickyNotesMap = () => {
       });
       return;
     }
+    if (!verifyTagFormat(tagText)) {
+      return;
+    }
 
-    const updatedMarker = { ...selectedMarker, text: noteText };
+    const updatedMarker = { ...selectedMarker, text: noteText, tags: tagText.split(',').map(tag => tag.trim()) };
     setMarkers((prevMarkers) =>
+      prevMarkers.map((marker) =>
+        marker.id === selectedMarker.id ? updatedMarker : marker
+      )
+    );
+    setFilteredMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
         marker.id === selectedMarker.id ? updatedMarker : marker
       )
@@ -172,19 +230,27 @@ const StickyNotesMap = () => {
     setModalVisible(false);
     setSelectedMarker(null);
     setNoteText('');
+    setTagText('');
   };
 
   const handleDelete = () => {
     setMarkers((prevMarkers) => prevMarkers.filter((marker) => marker.id !== selectedMarker.id));
+    setFilteredMarkers((prevMarkers) => prevMarkers.filter((marker) => marker.id !== selectedMarker.id));
     deleteMarker(selectedMarker.id); // Delete from Firestore
     setEditVisible(false);
     setModalVisible(false);
     setSelectedMarker(null);
     setNoteText('');
+    setTagText('');
   };
 
   const handleLike = (markerId) => {
     setMarkers((prevMarkers) =>
+      prevMarkers.map((marker) =>
+        marker.id === markerId ? { ...marker, likes: marker.likes + 1 } : marker
+      )
+    );
+    setFilteredMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
         marker.id === markerId ? { ...marker, likes: marker.likes + 1 } : marker
       )
@@ -217,6 +283,11 @@ const StickyNotesMap = () => {
         marker.id === selectedMarker.id ? updatedMarker : marker
       )
     );
+    setFilteredMarkers((prevMarkers) =>
+      prevMarkers.map((marker) =>
+        marker.id === selectedMarker.id ? updatedMarker : marker
+      )
+    );
     updateMarker(updatedMarker);
     setSelectedMarker(updatedMarker);
     setCommentText('');
@@ -228,25 +299,52 @@ const StickyNotesMap = () => {
   };
 
   const handleDragEnd = (e, markerId) => {
-    if (selectedMarker) { // Check if a marker is selected
-      const newCoordinate = e.nativeEvent.coordinate;
-      const updatedMarker = {
-        ...selectedMarker,
-        coordinate: newCoordinate
-      };
+    const newCoordinate = e.nativeEvent.coordinate;
+    const updatedMarker = markers.find(marker => marker.id === markerId);
+
+    if (updatedMarker) {
+      updatedMarker.coordinate = newCoordinate;
 
       setMarkers((prevMarkers) =>
         prevMarkers.map((marker) =>
           marker.id === markerId ? updatedMarker : marker
         )
       );
+      setFilteredMarkers((prevMarkers) =>
+        prevMarkers.map((marker) =>
+          marker.id === markerId ? updatedMarker : marker
+        )
+      );
+
       updateMarker(updatedMarker);
+      console.log('Updated marker: ', updatedMarker);
+    } else {
+      console.log('No marker found');
     }
   };
 
 
+  const handleSearch = (text) => {
+    setSearchText(text);
+    if (text.trim() === '') {
+      setFilteredMarkers(markers);
+    } else {
+      const filtered = markers.filter(marker =>
+        marker.text.toLowerCase().includes(text.toLowerCase()) ||
+        (marker.tags && marker.tags.some(tag => tag.toLowerCase().includes(text.toLowerCase())))
+      );
+      setFilteredMarkers(filtered);
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.searchBar}
+        value={searchText}
+        onChangeText={handleSearch}
+        placeholder="Search notes or tags"
+      />
       {loading ? (
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading...</Text>
@@ -254,7 +352,6 @@ const StickyNotesMap = () => {
       ) : (
         <MapView
           style={styles.map}
-          provider={PROVIDER_GOOGLE}
           customMapStyle={customMapStyle}
           onLongPress={handleLongPress}
           showsBuildings={false}
@@ -267,7 +364,7 @@ const StickyNotesMap = () => {
             pathTemplate={'../assets/tiles/white_tile.png'}
             tileSize={256}
           />
-          {markers.map((marker) => (
+          {filteredMarkers.map((marker) => (
             <Marker
               key={marker.id}
               coordinate={marker.coordinate}
@@ -282,6 +379,7 @@ const StickyNotesMap = () => {
                 </Text>
                 <Text style={styles.counterText}>Likes: {marker.likes}</Text>
                 <Text style={styles.counterText}>Comments: {marker.comments.length}</Text>
+                <Text style={styles.counterText} numberOfLines={2}>Tags: {marker.tags ? marker.tags.join(', ') : ''}</Text>
               </View>
             </Marker>
           ))}
@@ -304,14 +402,22 @@ const StickyNotesMap = () => {
             {!editVisible ? (
               <>
                 <ScrollView style={styles.noteScrollView}>
-
-                  <Text style={styles.modalText}>{(selectedMarker?.text)}</Text>
+                  <Text style={styles.modalText}>{selectedMarker?.text}</Text>
                 </ScrollView>
                 <View style={styles.likeCommentRow}>
                   <TouchableOpacity style={styles.likeButton} onPress={() => handleLike(selectedMarker.id)}>
                     <Text style={styles.likeButtonText}>👍 Like ({selectedMarker?.likes})</Text>
                   </TouchableOpacity>
                 </View>
+                {selectedMarker?.tags && selectedMarker.tags.length > 0 && (
+                  <View style={styles.tagsContainer}>
+                    {selectedMarker.tags.map((tag, index) => (
+                      <View key={index} style={styles.tagBox}>
+                        <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
                 <FlatList
                   style={styles.commentList}
                   data={selectedMarker?.comments}
@@ -346,6 +452,15 @@ const StickyNotesMap = () => {
                   placeholder="Edit your note"
                   multiline={true}
                 />
+                <TextInput
+                  style={styles.input}
+                  height={40}
+                  value={tagText}
+                  onChangeText={setTagText}
+                  placeholder="Add tags separated by commas"
+                  placeholderTextColor={'#666'}
+                  multiline={true}
+                />
                 <View style={styles.buttonRow}>
                   <TouchableOpacity style={styles.button} onPress={handleSave}>
                     <Text style={styles.buttonText}>Save</Text>
@@ -362,6 +477,8 @@ const StickyNotesMap = () => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+
       <Toast />
     </View>
   );
@@ -371,6 +488,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  searchBar: {
+    height: 40,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 10,
+    margin: 10,
+    paddingHorizontal: 10,
+  },
   map: {
     flex: 1,
   },
@@ -378,8 +503,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'yellow',
     padding: 5,
     borderRadius: 5,
-    maxHeight: 100,
-    maxWidth: 100,
+    maxHeight: 260,
+    maxWidth: 160,
   },
   stickyNoteText: {
     fontSize: 12,
@@ -434,6 +559,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#333',
   },
+  modalTags: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 20,
+  },
   input: {
     height: 100,
     borderColor: '#ddd',
@@ -470,7 +600,7 @@ const styles = StyleSheet.create({
   likeCommentRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
     width: '100%',
     paddingTop: 10,
   },
@@ -546,6 +676,23 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#0000ff',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: 5,
+  },
+  tagBox: {
+    backgroundColor: '#e0e0e0',
+    borderRadius: 10,
+    padding: 10,
+    margin: 5,
+  },
+  tagText: {
+    color: '#333',
+    fontSize: 10,
+    flexWrap: 'wrap',
+    maxWidth: 90,
   },
 });
 
