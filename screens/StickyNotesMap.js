@@ -3,7 +3,8 @@ import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import MapView, { LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import {
-  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, orderBy, startAt, endAt
+  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, orderBy, startAt, endAt,
+  count, where, log, limit
 } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import customMapStyle from '../assets/customMapStyle.json';
@@ -178,6 +179,12 @@ const StickyNotesMap = () => {
     try {
       const tagDoc = doc(firestore, 'tags', tag);
       const tagSnapshot = await getDoc(tagDoc);
+      if (tagSnapshot.exists()) {
+        const tagData = tagSnapshot.data();
+        await updateDoc(tagDoc, {
+          accessCount: tagData.accessCount + 1,
+        });
+      }
       return tagSnapshot.exists();
     } catch (error) {
       console.error("Error checking tag: ", error);
@@ -200,6 +207,7 @@ const StickyNotesMap = () => {
       await setDoc(tagDoc, {
         tag: tag,
         createdAt: serverTimestamp(),
+        accessCount: 1,
       });
       console.log('Tag added successfully!');
     } catch (error) {
@@ -207,7 +215,27 @@ const StickyNotesMap = () => {
     }
   };
 
+  //temp function to give all tags add initial access count fireld ansd set to 1
+  const updateTags = async () => {
+    try {
+      const tagsCollection = collection(firestore, 'tags');
+      const tagsSnapshot = await getDocs(tagsCollection);
+      tagsSnapshot.docs.forEach(async doc => {
+        const tagDoc = doc.ref;
+        const tagData = doc.data();
+        await updateDoc(tagDoc, {
+          accessCount: tagData.accessCount ? tagData.accessCount : 1,
+        });
+      });
+      
+      console.log('Tags updated successfully!');
+    } catch (error) {
+      console.error("Error updating tags: ", error);
+    }
+  };
+
   const searchTags = async (tag) => {
+    updateTags();
     if (tag.trim() === '') {
       setSuggestions([]);
       return;
@@ -216,12 +244,14 @@ const StickyNotesMap = () => {
       const tagsCollection = collection(firestore, 'tags');
       const q = query(
         tagsCollection,
-        orderBy('tag'),
-        startAt(tag.toLowerCase()),
-        endAt(tag.toLowerCase() + '\uf8ff')
+        where('tag', '>=', tag.toLowerCase()),
+        where('tag', '<=', tag.toLowerCase() + '\uf8ff'),
+        orderBy('accessCount', 'desc'),
+        limit(15)
       );
       const tagsSnapshot = await getDocs(q);
-      const tagsList = tagsSnapshot.docs.map(doc => doc.id);
+      const tagsList = tagsSnapshot.docs.map(doc => (doc.data().tag ));
+      console.log('Tags: ', tagsList);
       setSuggestions(tagsList);
     } catch (error) {
       console.error("Error fetching tags: ", error);

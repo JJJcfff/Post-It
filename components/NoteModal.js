@@ -25,6 +25,11 @@ const NoteModal = ({
           <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
+          {editVisible && (
+            <TouchableOpacity style={styles.backButton} onPress={() => setEditVisible(false)}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+          )}
           {!editVisible ? (
             <>
               <ScrollView style={styles.noteScrollView}>
@@ -77,12 +82,22 @@ const NoteModal = ({
             <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
               <Text style={styles.modalText}>Edit Note</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, styles.borderedInput]}
                 value={noteText}
                 onChangeText={setNoteText}
                 placeholder="Edit your note"
                 multiline={true}
               />
+              <View style={styles.tagsContainer}>
+                {tags.map((tag, index) => (
+                  <View key={index} style={styles.tagBox}>
+                    <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
+                    <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
+                      <Text style={styles.deleteTagText}>✕</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
               <View style={styles.tagInputRow}>
                 <Autocomplete
                   style={styles.tagInput}
@@ -110,16 +125,6 @@ const NoteModal = ({
                   <Text style={styles.addTagButtonText}>Add Tag</Text>
                 </TouchableOpacity>
               </View>
-              <View style={styles.tagsContainer}>
-                {tags.map((tag, index) => (
-                  <View key={index} style={styles.tagBox}>
-                    <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
-                    <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
-                      <Text style={styles.deleteTagText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
               <View style={styles.buttonRow}>
                 <TouchableOpacity style={styles.button} onPress={handleSave}>
                   <Text style={styles.buttonText}>Save</Text>
@@ -128,9 +133,6 @@ const NoteModal = ({
                   <Text style={styles.buttonText}>Delete</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.backButton} onPress={() => setEditVisible(false)}>
-                <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
             </ScrollView>
           )}
         </View>
@@ -174,6 +176,19 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#9E9E9E',
+    borderRadius: 10,
+    padding: 10,
+  },
+  backButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   noteScrollView: {
     maxHeight: 200,
@@ -261,22 +276,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
   },
-  backButton: {
-    backgroundColor: '#9E9E9E',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-  },
-  backButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 0,
     paddingTop: 10,
   },
   button: {
@@ -328,6 +332,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    width: '100%',
+    flex: 1,
   },
   addTagButton: {
     backgroundColor: '#2196F3',
@@ -342,7 +348,7 @@ const styles = StyleSheet.create({
   tagInput: {
     height: 40,
     borderColor: '#ddd',
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 10,
     paddingHorizontal: 10,
     flex: 1,
@@ -352,6 +358,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomColor: '#ddd',
     borderBottomWidth: 1,
+    width: '100%',
+  },
+  borderedInput: {
+    borderColor: '#bbb',
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    width: '100%',
   },
 });
 
