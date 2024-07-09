@@ -101,6 +101,7 @@ const NoteModal = ({
               <View style={styles.tagInputRow}>
                 <Autocomplete
                   style={styles.tagInput}
+                  containerStyle={styles.autocompleteContainer}
                   data={suggestions}
                   value={tagText}
                   onChangeText={(text) => {
@@ -334,6 +335,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: '100%',
     flex: 1,
+    zIndex: 1, // Add zIndex here
   },
   addTagButton: {
     backgroundColor: '#2196F3',
@@ -352,6 +354,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     flex: 1,
+    zIndex: 1, // Add zIndex here
+  },
+  autocompleteContainer: {
+    flex: 1,
+    zIndex: 1, // Add zIndex here
   },
   suggestionText: {
     padding: 10,

@@ -227,7 +227,7 @@ const StickyNotesMap = () => {
           accessCount: tagData.accessCount ? tagData.accessCount : 1,
         });
       });
-      
+
       console.log('Tags updated successfully!');
     } catch (error) {
       console.error("Error updating tags: ", error);
@@ -425,6 +425,15 @@ const StickyNotesMap = () => {
         type: 'error',
         text1: 'Error',
         text2: 'Tag is too long',
+      });
+      return;
+    }
+    //check if tag already exists
+    if (tags.includes(tagText.trim())) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Tag already exists',
       });
       return;
     }
