@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Button, KeyboardAvoidingView, StyleSheet, TextInput, View, Text } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  StyleSheet,
+  TextInput,
+  View,
+  Text,
+  TouchableOpacity,
+  ImageBackground,
+} from 'react-native';
 import { firebaseauth } from '../FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+
 
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState(''); 
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const auth = firebaseauth;
 
@@ -27,76 +37,122 @@ const Register = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView behavior='padding'>
-        <Text style={styles.text}>Register</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Email'
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize='none'
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder='Password'
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder='Confirm Password' 
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
-
+    <ImageBackground
+      source={{ uri: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f' }}
+      style={styles.background}
+    >
+      <KeyboardAvoidingView behavior="padding" style={styles.container}>
+        <Text style={styles.title}>Create an Account</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            placeholderTextColor="#999"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholderTextColor="#999"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            placeholderTextColor="#999"
+          />
+        </View>
         {loading ? (
-          <ActivityIndicator size='large' color='blue' />
+          <ActivityIndicator size="large" color="#fff" />
         ) : (
           <>
-            <Button title='Create Account' onPress={signUp} />
-            <Button title='Back to Login' onPress={() => navigation.navigate('Login')} />
+            <TouchableOpacity style={styles.button} onPress={signUp}>
+              <Text style={styles.buttonText}>Sign Up</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonSecondary}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.buttonSecondaryText}>Back to Login</Text>
+            </TouchableOpacity>
           </>
         )}
       </KeyboardAvoidingView>
-    </View>
+    </ImageBackground>
   );
 };
 
 export default Register;
 
 const styles = StyleSheet.create({
-  text: {
-    fontSize: 30,
-    textAlign: 'center',
-    margin: 10,
-  },
-  container: {
+  background: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  },
+  container: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 36,
+    color: '#fff',
+    marginBottom: 20,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 20,
   },
   input: {
-    width: 300,
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    margin: 10,
+    width: '100%',
+    height: 50,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
     paddingHorizontal: 10,
+    marginVertical: 10,
+    color: '#fff',
   },
   button: {
-    width: 300,
-    height: 40,
-    backgroundColor: 'blue',
-    justifyContent: 'center',
+    backgroundColor: '#1e90ff',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '100%',
     alignItems: 'center',
-    margin: 10,
+    marginVertical: 10,
   },
   buttonText: {
-    color: 'white',
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  buttonSecondary: {
+    borderColor: '#fff',
+    borderWidth: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  buttonSecondaryText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
