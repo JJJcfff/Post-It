@@ -201,7 +201,7 @@ const StickyNotesMap = () => {
       console.log('Tag is too long');
       return;
     }
-    tag = tag.trim().toLowerCase();
+    tag = tag.trim();
     try {
       const tagDoc = doc(firestore, 'tags', tag);
       await setDoc(tagDoc, {
