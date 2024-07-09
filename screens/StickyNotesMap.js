@@ -215,27 +215,7 @@ const StickyNotesMap = () => {
     }
   };
 
-  //temp function to give all tags add initial access count fireld ansd set to 1
-  const updateTags = async () => {
-    try {
-      const tagsCollection = collection(firestore, 'tags');
-      const tagsSnapshot = await getDocs(tagsCollection);
-      tagsSnapshot.docs.forEach(async doc => {
-        const tagDoc = doc.ref;
-        const tagData = doc.data();
-        await updateDoc(tagDoc, {
-          accessCount: tagData.accessCount ? tagData.accessCount : 1,
-        });
-      });
-
-      console.log('Tags updated successfully!');
-    } catch (error) {
-      console.error("Error updating tags: ", error);
-    }
-  };
-
   const searchTags = async (tag) => {
-    updateTags();
     if (tag.trim() === '') {
       setSuggestions([]);
       return;
