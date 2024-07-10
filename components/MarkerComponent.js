@@ -12,7 +12,7 @@ const MarkerComponent = ({ marker, onPress, onDragStart, onDragEnd, userId }) =>
       onDragStart={onDragStart}
       onDragEnd={(e) => onDragEnd(e, marker.id)}
     >
-      <View style={styles.stickyNote}>
+      <View style={[styles.stickyNote, { backgroundColor: marker.color || 'yellow' }]}>
         <Text style={styles.stickyNoteText} numberOfLines={5}>
           {marker.text}
         </Text>
@@ -26,7 +26,6 @@ const MarkerComponent = ({ marker, onPress, onDragStart, onDragEnd, userId }) =>
 
 const styles = StyleSheet.create({
   stickyNote: {
-    backgroundColor: 'yellow',
     padding: 5,
     borderRadius: 5,
     maxHeight: 260,

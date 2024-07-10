@@ -1,15 +1,16 @@
-import React from 'react';
-import {
-  View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import Toast from 'react-native-toast-message';
+import  ColorPicker  from 'react-native-wheel-color-picker';
 
 const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
-  handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible
+  handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor
 }) => {
+  const defaultColors = ['#FFEB3B', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0'];
+
   return (
     <Modal
       animationType="slide"
@@ -126,7 +127,15 @@ const NoteModal = ({
                   <Text style={styles.addTagButtonText}>Add Tag</Text>
                 </TouchableOpacity>
               </View>
-              <View style={styles.buttonRow}>
+              <View style={styles.colorPickerContainer}>
+                <Text style={styles.colorPickerLabel}>Select a color:</Text>
+                <ColorPicker
+                  onColorChange={(color) => setColor(color)}
+                  style={{ height: 250, width: '100%' }}
+                  thumbSize={30}
+                />
+              </View>
+              <View style={[styles.buttonRow, { marginTop: 20 }]}>
                 <TouchableOpacity style={styles.button} onPress={handleSave}>
                   <Text style={styles.buttonText}>Save</Text>
                 </TouchableOpacity>
@@ -335,7 +344,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     width: '100%',
     flex: 1,
-    zIndex: 1, // Add zIndex here
+    zIndex: 1,
   },
   addTagButton: {
     backgroundColor: '#2196F3',
@@ -354,11 +363,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     flex: 1,
-    zIndex: 1, // Add zIndex here
+    zIndex: 1,
   },
   autocompleteContainer: {
     flex: 1,
-    zIndex: 1, // Add zIndex here
+    zIndex: 1,
   },
   suggestionText: {
     padding: 10,
@@ -374,6 +383,34 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     width: '100%',
+  },
+  colorPickerContainer: {
+    width: '90%',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  colorPickerLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  colorOptionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  colorOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    margin: 5,
+  },
+  orText: {
+    fontSize: 14,
+    color: '#666',
+    marginVertical: 10,
   },
 });
 

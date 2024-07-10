@@ -29,6 +29,7 @@ const StickyNotesMap = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredMarkers, setFilteredMarkers] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [color, setColor] = useState('');
 
   useEffect(() => {
     const setAuthUser = () => {
@@ -96,12 +97,11 @@ const StickyNotesMap = () => {
         comments: [],
         createdAt: serverTimestamp(),
         lastUpdatedAt: serverTimestamp(),
+        color: color || '#FFEB3B', // Default color if no color is selected
       });
-      console.log('Document successfully written!', newMarkerRef.id, userId, serverTimestamp());
 
       const newMarkerSnapshot = await getDoc(newMarkerRef);
       const newMarker = newMarkerSnapshot.data();
-      console.log('New marker: ', newMarker);
 
       setMarkers([...markers, newMarker]);
       setFilteredMarkers([...markers, newMarker]);
@@ -137,6 +137,7 @@ const StickyNotesMap = () => {
         comments: updatedMarker.comments,
         likes: updatedMarker.likes,
         coordinate: updatedMarker.coordinate,
+        color: updatedMarker.color,
         lastUpdatedAt: serverTimestamp(),
       });
 
@@ -145,7 +146,6 @@ const StickyNotesMap = () => {
           addTag(tag);
         }
       }
-      console.log('Document successfully updated!', updatedMarker.id);
     } catch (error) {
       console.error('Error updating document: ', error);
       Toast.show({
@@ -155,6 +155,7 @@ const StickyNotesMap = () => {
       });
     }
   };
+
 
   const deleteMarker = async (markerId) => {
     try {
@@ -261,7 +262,7 @@ const StickyNotesMap = () => {
       return;
     }
 
-    const updatedMarker = { ...selectedMarker, text: noteText, tags };
+    const updatedMarker = { ...selectedMarker, text: noteText, tags, color };
     setMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
         marker.id === selectedMarker.id ? updatedMarker : marker
@@ -485,6 +486,8 @@ const StickyNotesMap = () => {
         setSuggestions={setSuggestions}
         editVisible={editVisible}
         setEditVisible={setEditVisible}
+        color={color}
+        setColor={setColor}
       />
       <Toast />
     </View>
