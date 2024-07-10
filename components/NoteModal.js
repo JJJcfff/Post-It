@@ -9,7 +9,6 @@ const NoteModal = ({
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor
 }) => {
-  const defaultColors = ['#FFEB3B', '#FF5722', '#4CAF50', '#2196F3', '#9C27B0'];
 
   return (
     <Modal
