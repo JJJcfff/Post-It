@@ -4,7 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from './screens/Login';
 import Register from './screens/Register';
 import ChatBot from './screens/ChatBot';
-import StickyNotesMap from './screens/StickyNotesMap.js';
+import StickyNotesMap from './screens/StickyNotesMap';
+import UserProfile from './screens/UserProfile';
 
 const Stack = createStackNavigator();
 
@@ -16,9 +17,11 @@ const App = () => {
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="ChatBot" component={ChatBot} />
         <Stack.Screen name="StickyNotesMap" component={StickyNotesMap} />
+        <Stack.Screen name="UserProfile" component={UserProfile} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
 
 export default App;
+

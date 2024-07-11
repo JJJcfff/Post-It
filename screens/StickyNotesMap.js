@@ -5,10 +5,9 @@ import { firebaseapp } from '../FirebaseConfig';
 import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 
-
 const firestore = getFirestore(firebaseapp);
 
-const StickyNotesMap = () => {
+const StickyNotesMap = ({ navigation }) => {
   const [markers, setMarkers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newNote, setNewNote] = useState('');
@@ -33,6 +32,7 @@ const StickyNotesMap = () => {
       const newMarker = {
         coordinate: selectedLocation,
         note: newNote,
+        userId: firebaseauth.currentUser.uid,
       };
       const docRef = await addDoc(collection(firestore, 'stickyNotes'), newMarker);
       setMarkers([...markers, { ...newMarker, id: docRef.id }]);
@@ -76,6 +76,9 @@ const StickyNotesMap = () => {
           </View>
         </View>
       </Modal>
+      <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('UserProfile')}>
+        <Text style={styles.profileButtonText}>Profile</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -105,6 +108,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
+  },
+  profileButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    backgroundColor: '#1e90ff',
+    padding: 10,
+    borderRadius: 5,
+  },
+  profileButtonText: {
+    color: 'white',
   },
 });
 
