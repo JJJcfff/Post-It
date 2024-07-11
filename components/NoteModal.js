@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import Toast from 'react-native-toast-message';
-import  ColorPicker  from 'react-native-wheel-color-picker';
+import ColorPicker, { Panel1, Swatches, Preview, SaturationSlider, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
 
 const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor
 }) => {
+  // Ensure the color state is properly initialized
+  useEffect(() => {
+    if (!color) {
+      setColor('#FFE900') // default to yellow if color is not set
+    }
+  }, [color]);
+
+  const onSelectColor = (color) => {
+    setColor(color.hex);
+    console.log("Color selected: ", color);
+  }
 
   return (
     <Modal
@@ -127,14 +138,27 @@ const NoteModal = ({
                 </TouchableOpacity>
               </View>
               <View style={styles.colorPickerContainer}>
-                <Text style={styles.colorPickerLabel}>Select a color:</Text>
+                <Text style={styles.colorPickerLabel}>Background Color:</Text>
                 <ColorPicker
-                  onColorChange={(color) => setColor(color)}
-                  style={{ height: 250, width: '100%' }}
+                  color={color ? color : '#FFE900'}
+                  sliderThickness={20}
                   thumbSize={30}
-                />
+                  onComplete={onSelectColor}
+                  style={{ width: '95%' }}
+                >
+                  <Preview 
+                  hideInitialColor={true}
+                  style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
+                  />
+                  <HueSlider />
+                  <HSLSaturationSlider style={{ marginTop: 20 }} />
+                  <Swatches 
+                  colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors, maron
+                  style={{ marginTop: 20 }}
+                  />
+                </ColorPicker>
               </View>
-              <View style={[styles.buttonRow, { marginTop: 20 }]}>
+              <View style={[styles.buttonRow]}>
                 <TouchableOpacity style={styles.button} onPress={handleSave}>
                   <Text style={styles.buttonText}>Save</Text>
                 </TouchableOpacity>
@@ -363,6 +387,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     flex: 1,
     zIndex: 1,
+    
   },
   autocompleteContainer: {
     flex: 1,
@@ -394,22 +419,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 10,
-  },
-  colorOptionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  colorOption: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    margin: 5,
-  },
-  orText: {
-    fontSize: 14,
-    color: '#666',
-    marginVertical: 10,
   },
 });
 
