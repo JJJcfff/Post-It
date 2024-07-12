@@ -7,19 +7,27 @@ import ColorPicker, { Panel1, Swatches, Preview, SaturationSlider, HueSlider, HS
 const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
-  handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor
+  handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor
 }) => {
-  // Ensure the color state is properly initialized
   useEffect(() => {
     if (!color) {
-      setColor('#FFE900') // default to yellow if color is not set
+      setColor('#FFE900'); // default to yellow if color is not set
     }
-  }, [color]);
+    if (!textColor) {
+      setTextColor('#000000'); // default to black if text color is not set
+    }
+  }, []);
 
   const onSelectColor = (color) => {
     const selectedColor = color.hex || color;
     setColor(selectedColor);
     console.log("Color selected: ", selectedColor);
+  };
+
+  const onSelectTextColor = (color) => {
+    const selectedColor = color.hex || color;
+    setTextColor(selectedColor);
+    console.log("Text Color selected: ", selectedColor);
   };
 
   const confirmDelete = () => {
@@ -112,7 +120,7 @@ const NoteModal = ({
             <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
               <Text style={styles.modalText}>Edit Note</Text>
               <TextInput
-                style={[styles.input, styles.borderedInput]}
+                style={[styles.input, styles.borderedInput, { backgroundColor: color, color: textColor }]}
                 value={noteText}
                 onChangeText={setNoteText}
                 placeholder="Edit your note"
@@ -159,21 +167,42 @@ const NoteModal = ({
               <View style={styles.colorPickerContainer}>
                 <Text style={styles.colorPickerLabel}>Background Color:</Text>
                 <ColorPicker
-                  value={color ? color : '#FFE900'}
+                  key="backgroundColorPicker"
+                  value={color}
                   sliderThickness={20}
                   thumbSize={30}
                   onComplete={onSelectColor}
                   style={{ width: '95%' }}
                 >
                   <Preview 
-                  hideInitialColor={true}
-                  style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
+                    hideInitialColor={true}
+                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
                   />
                   <HueSlider />
                   <HSLSaturationSlider style={{ marginTop: 20 }} />
                   <Swatches 
-                  colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors
-                  style={{ marginTop: 20 }}
+                    colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors
+                    style={{ marginTop: 20 }}
+                  />
+                </ColorPicker>
+                <Text style={styles.colorPickerLabel}>Text Color:</Text>
+                <ColorPicker
+                  key="textColorPicker"
+                  value={textColor}
+                  sliderThickness={20}
+                  thumbSize={30}
+                  onComplete={onSelectTextColor}
+                  style={{ width: '95%'}}
+                >
+                  <Preview 
+                    hideInitialColor={true}
+                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
+                  />
+                  {/* <HueSlider />
+                  <HSLSaturationSlider style={{ marginTop: 20 }} /> */}
+                  <Swatches // predefined colors, mostly black and white for text
+                    colors={['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#FFFFFF']}
+                    // style={{ marginTop: 20 }}
                   />
                 </ColorPicker>
               </View>
@@ -406,7 +435,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     flex: 1,
     zIndex: 1,
-    
   },
   autocompleteContainer: {
     flex: 1,

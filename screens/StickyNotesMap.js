@@ -30,6 +30,7 @@ const StickyNotesMap = () => {
   const [filteredMarkers, setFilteredMarkers] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [color, setColor] = useState('');
+  const [textColor, setTextColor] = useState('');
 
   useEffect(() => {
     const setAuthUser = () => {
@@ -98,6 +99,7 @@ const StickyNotesMap = () => {
         createdAt: serverTimestamp(),
         lastUpdatedAt: serverTimestamp(),
         color: '#FFEB3B', // Default color
+        textColor: '#000000', // Default text color
       });
 
       const newMarkerSnapshot = await getDoc(newMarkerRef);
@@ -138,6 +140,7 @@ const StickyNotesMap = () => {
         likes: updatedMarker.likes,
         coordinate: updatedMarker.coordinate,
         color: updatedMarker.color,
+        textColor: updatedMarker.textColor,
         lastUpdatedAt: serverTimestamp(),
       });
 
@@ -248,9 +251,11 @@ const StickyNotesMap = () => {
     setSelectedMarker(marker);
     if (marker.text) { setNoteText(marker.text); }
     if (marker.tags) { setTags(marker.tags); }
+    if (marker.color) { setColor(marker.color); } else { setColor('#FFEB3B'); }
+    if (marker.textColor) { setTextColor(marker.textColor); } else { setTextColor('#000000'); }
     setEditVisible(false);
     setModalVisible(true);
-    setColor(marker.color);
+
   };
 
   const handleSave = () => {
@@ -263,7 +268,7 @@ const StickyNotesMap = () => {
       return;
     }
 
-    const updatedMarker = { ...selectedMarker, text: noteText, tags, color };
+    const updatedMarker = { ...selectedMarker, text: noteText, tags, color, textColor};
     setMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
         marker.id === selectedMarker.id ? updatedMarker : marker
@@ -489,6 +494,8 @@ const StickyNotesMap = () => {
         setEditVisible={setEditVisible}
         color={color}
         setColor={setColor}
+        textColor={textColor}
+        setTextColor={setTextColor}
       />
       <Toast />
     </View>
