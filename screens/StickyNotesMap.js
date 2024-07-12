@@ -97,7 +97,7 @@ const StickyNotesMap = () => {
         comments: [],
         createdAt: serverTimestamp(),
         lastUpdatedAt: serverTimestamp(),
-        color: color || '#FFEB3B', // Default color if no color is selected
+        color: '#FFEB3B', // Default color
       });
 
       const newMarkerSnapshot = await getDoc(newMarkerRef);
@@ -250,6 +250,7 @@ const StickyNotesMap = () => {
     if (marker.tags) { setTags(marker.tags); }
     setEditVisible(false);
     setModalVisible(true);
+    setColor(marker.color);
   };
 
   const handleSave = () => {

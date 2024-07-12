@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import Toast from 'react-native-toast-message';
 import ColorPicker, { Panel1, Swatches, Preview, SaturationSlider, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
@@ -17,9 +17,28 @@ const NoteModal = ({
   }, [color]);
 
   const onSelectColor = (color) => {
-    setColor(color.hex);
-    console.log("Color selected: ", color);
-  }
+    const selectedColor = color.hex || color;
+    setColor(selectedColor);
+    console.log("Color selected: ", selectedColor);
+  };
+
+  const confirmDelete = () => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this marker?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: handleDelete,
+          style: "destructive"
+        }
+      ]
+    );
+  };
 
   return (
     <Modal
@@ -140,7 +159,7 @@ const NoteModal = ({
               <View style={styles.colorPickerContainer}>
                 <Text style={styles.colorPickerLabel}>Background Color:</Text>
                 <ColorPicker
-                  color={color ? color : '#FFE900'}
+                  value={color ? color : '#FFE900'}
                   sliderThickness={20}
                   thumbSize={30}
                   onComplete={onSelectColor}
@@ -153,7 +172,7 @@ const NoteModal = ({
                   <HueSlider />
                   <HSLSaturationSlider style={{ marginTop: 20 }} />
                   <Swatches 
-                  colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors, maron
+                  colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors
                   style={{ marginTop: 20 }}
                   />
                 </ColorPicker>
@@ -162,7 +181,7 @@ const NoteModal = ({
                 <TouchableOpacity style={styles.button} onPress={handleSave}>
                   <Text style={styles.buttonText}>Save</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
+                <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={confirmDelete}>
                   <Text style={styles.buttonText}>Delete</Text>
                 </TouchableOpacity>
               </View>
