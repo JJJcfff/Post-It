@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, Modal, TouchableOpacity } from 'react-native';
 import MapView, { LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
-import {
-  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, orderBy, startAt, endAt,
-  count, where, log, limit
-} from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, orderBy, startAt, endAt, count, where, log, limit } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import customMapStyle from '../assets/customMapStyle.json';
-
 import MarkerComponent from '../components/MarkerComponent';
 import NoteModal from '../components/NoteModal';
 import SearchBar from '../components/SearchBar';
@@ -31,6 +27,8 @@ const StickyNotesMap = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [color, setColor] = useState('');
   const [textColor, setTextColor] = useState('');
+  const [selectionModalVisible, setSelectionModalVisible] = useState(false);
+  const [newCoordinate, setNewCoordinate] = useState(null);
 
   useEffect(() => {
     const setAuthUser = () => {
@@ -159,7 +157,6 @@ const StickyNotesMap = () => {
     }
   };
 
-
   const deleteMarker = async (markerId) => {
     try {
       await deleteDoc(doc(firestore, 'stickyNoteMarkers', markerId));
@@ -244,7 +241,8 @@ const StickyNotesMap = () => {
   };
 
   const handleLongPress = (e) => {
-    addMarker(e);
+    setNewCoordinate(e.nativeEvent.coordinate);
+    setSelectionModalVisible(true);
   };
 
   const handleMarkerPress = (marker) => {
@@ -255,7 +253,6 @@ const StickyNotesMap = () => {
     if (marker.textColor) { setTextColor(marker.textColor); } else { setTextColor('#000000'); }
     setEditVisible(false);
     setModalVisible(true);
-
   };
 
   const handleSave = () => {
@@ -434,6 +431,17 @@ const StickyNotesMap = () => {
     setTags(tags.filter(tag => tag !== tagToDelete));
   };
 
+  const handleTextNote = () => {
+    setSelectionModalVisible(false);
+    addMarker({ nativeEvent: { coordinate: newCoordinate } });
+  };
+
+  const handleImageNote = () => {
+    setSelectionModalVisible(false);
+    //TODO: Add image note functionality
+    console.log('Add image note functionality');
+  };
+
   return (
     <View style={styles.container}>
       <SearchBar searchText={searchText} handleSearch={handleSearch} />
@@ -498,6 +506,26 @@ const StickyNotesMap = () => {
         setTextColor={setTextColor}
       />
       <Toast />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={selectionModalVisible}
+        onRequestClose={() => setSelectionModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <TouchableOpacity style={styles.button} onPress={handleTextNote}>
+              <Text style={styles.buttonText}>Add Text Note</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={handleImageNote}>
+              <Text style={styles.buttonText}>Add Image Note</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setSelectionModalVisible(false)}>
+              <Text style={styles.closeButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -519,6 +547,49 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#0000ff',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 10,
+    padding: 10,
+    margin: 10,
+    backgroundColor: '#2196F3',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#FF6347',
+    borderRadius: 10,
+    padding: 10,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
