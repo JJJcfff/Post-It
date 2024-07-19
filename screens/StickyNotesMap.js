@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, Modal, TouchableOpacity } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import MapView, { LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
-import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, orderBy, startAt, endAt, count, where, log, limit } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
+import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
 import customMapStyle from '../assets/customMapStyle.json';
 import MarkerComponent from '../components/MarkerComponent';
 import NoteModal from '../components/NoteModal';
 import SearchBar from '../components/SearchBar';
 
 const firestore = getFirestore(firebaseapp);
+const storage = getStorage(firebaseapp);
 
 const StickyNotesMap = () => {
   const [userId, setUserId] = useState('');
@@ -18,17 +20,20 @@ const StickyNotesMap = () => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
+
   const [noteText, setNoteText] = useState('');
   const [commentText, setCommentText] = useState('');
   const [tagText, setTagText] = useState('');
   const [tags, setTags] = useState([]);
   const [searchText, setSearchText] = useState('');
+  const [newCoordinate, setNewCoordinate] = useState(null);
+
+  const [imageUris, setImageUris] = useState([]);
   const [filteredMarkers, setFilteredMarkers] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+
   const [color, setColor] = useState('');
   const [textColor, setTextColor] = useState('');
-  const [selectionModalVisible, setSelectionModalVisible] = useState(false);
-  const [newCoordinate, setNewCoordinate] = useState(null);
 
   useEffect(() => {
     const setAuthUser = () => {
@@ -86,7 +91,8 @@ const StickyNotesMap = () => {
     try {
       const newMarkerRef = doc(collection(firestore, 'stickyNoteMarkers'));
 
-      await setDoc(newMarkerRef, {
+      const currentTimestamp = serverTimestamp();
+      const newMarker = {
         id: newMarkerRef.id,
         user: userId,
         coordinate: e.nativeEvent.coordinate,
@@ -94,25 +100,24 @@ const StickyNotesMap = () => {
         tags: [],
         likes: 0,
         comments: [],
-        createdAt: serverTimestamp(),
-        lastUpdatedAt: serverTimestamp(),
-        color: '#FFEB3B', // Default color
-        textColor: '#000000', // Default text color
+        createdAt: currentTimestamp,
+        lastUpdatedAt: currentTimestamp,
+        color: '#FFEB3B',
+        textColor: '#000000',
+        imageUris: [],
+      }
+      setDoc(newMarkerRef, newMarker).then(() => {
+        setMarkers([...markers, newMarker]);
+        setFilteredMarkers([...markers, newMarker]);
+        setSelectedMarker(newMarker);
+        setNoteText('');
+        setTagText('');
+        setTags([]);
+        setImageUris([]);
+
+        setModalVisible(true);
+        setEditVisible(true);
       });
-
-      const newMarkerSnapshot = await getDoc(newMarkerRef);
-      const newMarker = newMarkerSnapshot.data();
-
-      setMarkers([...markers, newMarker]);
-      setFilteredMarkers([...markers, newMarker]);
-      setSelectedMarker(newMarker);
-
-      setNoteText('');
-      setTagText('');
-      setTags([]);
-
-      setModalVisible(true);
-      setEditVisible(true);
     } catch (error) {
       console.error('Error adding document: ', error);
       Toast.show({
@@ -140,6 +145,7 @@ const StickyNotesMap = () => {
         color: updatedMarker.color,
         textColor: updatedMarker.textColor,
         lastUpdatedAt: serverTimestamp(),
+        imageUris: updatedMarker.imageUris,
       });
 
       for (let tag of updatedMarker.tags) {
@@ -171,7 +177,7 @@ const StickyNotesMap = () => {
     }
   };
 
-  const findExistingTag = async(tag) => {
+  const findExistingTag = async (tag) => {
     if (!tag) {
       console.log('Tag is empty');
       return;
@@ -193,7 +199,7 @@ const StickyNotesMap = () => {
     }
   };
 
-  const addTag = async(tag) => {
+  const addTag = async (tag) => {
     if (!tag) {
       console.log('Tag is empty');
       return;
@@ -231,7 +237,7 @@ const StickyNotesMap = () => {
         limit(15)
       );
       const tagsSnapshot = await getDocs(q);
-      const tagsList = tagsSnapshot.docs.map(doc => (doc.data().tag ));
+      const tagsList = tagsSnapshot.docs.map(doc => (doc.data().tag));
       console.log('Tags: ', tagsList);
       setSuggestions(tagsList);
     } catch (error) {
@@ -242,7 +248,7 @@ const StickyNotesMap = () => {
 
   const handleLongPress = (e) => {
     setNewCoordinate(e.nativeEvent.coordinate);
-    setSelectionModalVisible(true);
+    addMarker(e);
   };
 
   const handleMarkerPress = (marker) => {
@@ -251,6 +257,8 @@ const StickyNotesMap = () => {
     if (marker.tags) { setTags(marker.tags); }
     if (marker.color) { setColor(marker.color); } else { setColor('#FFEB3B'); }
     if (marker.textColor) { setTextColor(marker.textColor); } else { setTextColor('#000000'); }
+    if (marker.imageUris) { setImageUris(marker.imageUris); } else { setImageUris([]); }
+
     setEditVisible(false);
     setModalVisible(true);
   };
@@ -265,7 +273,7 @@ const StickyNotesMap = () => {
       return;
     }
 
-    const updatedMarker = { ...selectedMarker, text: noteText, tags, color, textColor};
+    const updatedMarker = { ...selectedMarker, text: noteText, tags, color, textColor, lastUpdatedAt: serverTimestamp(), imageUris };
     setMarkers((prevMarkers) =>
       prevMarkers.map((marker) =>
         marker.id === selectedMarker.id ? updatedMarker : marker
@@ -282,6 +290,7 @@ const StickyNotesMap = () => {
     setSelectedMarker(null);
     setNoteText('');
     setTags([]);
+    setImageUris([]);
   };
 
   const handleDelete = () => {
@@ -293,6 +302,7 @@ const StickyNotesMap = () => {
     setSelectedMarker(null);
     setNoteText('');
     setTags([]);
+    setImageUris([]);
   };
 
   const handleLike = (markerId) => {
@@ -387,6 +397,32 @@ const StickyNotesMap = () => {
     }
   };
 
+  const uploadImage = async (imageUri) => {
+    try {
+      const filename = imageUri.split('/').pop();
+      console.log('Uploading Image, Filename:', filename);
+      if (!imageUri.startsWith('file://')) {
+        throw new Error('Invalid image URI');
+      }
+      const response = await fetch(imageUri);
+      if (!response.ok) {
+        throw new Error('Failed to fetch image, status: ' + response.status);
+      }
+      const blob = await response.blob();
+      console.log('Blob:', blob);
+      const storageRef = ref(storage, `images/${selectedMarker.id}/${filename}`);
+      console.log('Storage Ref:', storageRef);
+      const snapshot = await uploadBytes(storageRef, blob);
+      console.log('Uploaded image:', snapshot);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log('Download URL:', downloadURL);
+      return downloadURL;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    }
+  };
+
+
   const handleAddTag = () => {
     if (tags.length >= 10) {
       Toast.show({
@@ -412,7 +448,6 @@ const StickyNotesMap = () => {
       });
       return;
     }
-    //check if tag already exists
     if (tags.includes(tagText.trim())) {
       Toast.show({
         type: 'error',
@@ -429,17 +464,6 @@ const StickyNotesMap = () => {
 
   const handleDeleteTag = (tagToDelete) => {
     setTags(tags.filter(tag => tag !== tagToDelete));
-  };
-
-  const handleTextNote = () => {
-    setSelectionModalVisible(false);
-    addMarker({ nativeEvent: { coordinate: newCoordinate } });
-  };
-
-  const handleImageNote = () => {
-    setSelectionModalVisible(false);
-    //TODO: Add image note functionality
-    console.log('Add image note functionality');
   };
 
   return (
@@ -504,28 +528,11 @@ const StickyNotesMap = () => {
         setColor={setColor}
         textColor={textColor}
         setTextColor={setTextColor}
+        imageUris={imageUris}
+        setImageUris={setImageUris}
+        uploadImage={uploadImage}
       />
       <Toast />
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={selectionModalVisible}
-        onRequestClose={() => setSelectionModalVisible(false)}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <TouchableOpacity style={styles.button} onPress={handleTextNote}>
-              <Text style={styles.buttonText}>Add Text Note</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={handleImageNote}>
-              <Text style={styles.buttonText}>Add Image Note</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setSelectionModalVisible(false)}>
-              <Text style={styles.closeButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -547,49 +554,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#0000ff',
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  button: {
-    borderRadius: 10,
-    padding: 10,
-    margin: 10,
-    backgroundColor: '#2196F3',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: '#FF6347',
-    borderRadius: 10,
-    padding: 10,
-  },
-  closeButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
 });
 

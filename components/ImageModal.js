@@ -1,22 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, Modal, Image, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
-import ColorPicker, { Swatches, Preview, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
-import * as ImagePicker from 'expo-image-picker';
-import { Image as CachedImage } from 'react-native-expo-image-cache';
+import ColorPicker, {Swatches, Preview, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
 
-const NoteModal = ({
-  modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
+const ImageModal = ({
+  imageModalVisible, setImageModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
-  handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor,
-  imageUris, setImageUris, uploadImage
+  handleDeleteTag, searchTags, suggestions, setSuggestions, imageEditVisible, setImageEditVisible, color, setColor, textColor, setTextColor
 }) => {
   useEffect(() => {
     if (!color) {
-      setColor('#FFE900');
+      setColor('#FFE900'); // default to yellow if color is not set
     }
     if (!textColor) {
-      setTextColor('#000000');
+      setTextColor('#000000'); // default to black if text color is not set
     }
   }, []);
 
@@ -31,7 +28,7 @@ const NoteModal = ({
     setTextColor(selectedColor);
     console.log("Text Color selected: ", selectedColor);
   };
-
+  
   const confirmDelete = () => {
     Alert.alert(
       "Confirm Delete",
@@ -50,37 +47,8 @@ const NoteModal = ({
     );
   };
 
-  const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        quality: 1,
-      });
 
-      let uris = result.canceled ? [] : result.assets.map(data => data.uri);
 
-      const uploadedImageUris = [];
-
-      for (const uri of uris) {
-        const uploadedUri = await uploadImage(uri);
-        if (uploadedUri) {
-          uploadedImageUris.push(uploadedUri);
-          console.log("Image uploaded: ", uploadedUri);
-        } else { console.log("Error uploading image"); }
-      }
-      setImageUris([...imageUris, ...uploadedImageUris]);
-      
-    } catch (error) {
-      console.log("Error picking image: ", error);
-    }
-  };
-
-  const handleDeleteImage = (index) => {
-    const newImageUris = [...imageUris];
-    newImageUris.splice(index, 1);
-    setImageUris(newImageUris);
-  };
 
   return (
     <Modal
@@ -93,7 +61,7 @@ const NoteModal = ({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.centeredView}
       >
-        <View style={[styles.modalView, !editVisible && styles.modalViewLarge]}>
+        <View style={styles.modalView}>
           <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
@@ -106,14 +74,6 @@ const NoteModal = ({
             <>
               <ScrollView style={styles.noteScrollView}>
                 <Text style={styles.modalText}>{selectedMarker?.text}</Text>
-                <FlatList
-                  data={selectedMarker?.imageUris || []}
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => (
-                    <CachedImage uri={item} style={styles.noteImage} />
-                  )}
-                  horizontal={true}
-                />
               </ScrollView>
               <View style={styles.likeCommentRow}>
                 <TouchableOpacity style={styles.likeButton} onPress={() => handleLike(selectedMarker.id)}>
@@ -167,24 +127,7 @@ const NoteModal = ({
                 onChangeText={setNoteText}
                 placeholder="Edit your note"
                 multiline={true}
-                scrollEnabled={false}
               />
-              <FlatList
-                data={imageUris}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <View style={styles.imageContainer}>
-                    <CachedImage uri={item} style={styles.noteImage} />
-                    <TouchableOpacity style={styles.deleteImageButton} onPress={() => handleDeleteImage(index)}>
-                      <Text style={styles.deleteImageButtonText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-                horizontal={true}
-              />
-              <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
-                <Text style={styles.addImageButtonText}>Add Image</Text>
-              </TouchableOpacity>
               <View style={styles.tagsContainer}>
                 {tags.map((tag, index) => (
                   <View key={index} style={styles.tagBox}>
@@ -233,14 +176,14 @@ const NoteModal = ({
                   onComplete={onSelectColor}
                   style={{ width: '95%' }}
                 >
-                  <Preview
+                  <Preview 
                     hideInitialColor={true}
-                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
                   />
                   <HueSlider />
                   <HSLSaturationSlider style={{ marginTop: 20 }} />
-                  <Swatches
-                    colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']}
+                  <Swatches 
+                    colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors
                     style={{ marginTop: 20 }}
                   />
                 </ColorPicker>
@@ -251,14 +194,17 @@ const NoteModal = ({
                   sliderThickness={20}
                   thumbSize={30}
                   onComplete={onSelectTextColor}
-                  style={{ width: '95%' }}
+                  style={{ width: '95%'}}
                 >
-                  <Preview
+                  <Preview 
                     hideInitialColor={true}
-                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
                   />
-                  <Swatches
+                  {/* <HueSlider />
+                  <HSLSaturationSlider style={{ marginTop: 20 }} /> */}
+                  <Swatches // predefined colors, mostly black and white for text
                     colors={['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#FFFFFF']}
+                    // style={{ marginTop: 20 }}
                   />
                 </ColorPicker>
               </View>
@@ -286,7 +232,7 @@ const styles = StyleSheet.create({
     marginTop: 22,
   },
   modalView: {
-    width: '100%',
+    width: '90%',
     maxHeight: '80%',
     backgroundColor: 'white',
     borderRadius: 20,
@@ -301,10 +247,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  modalViewLarge: {
-    width: '100%',
-    maxHeight: '80%',
-  },
   closeButton: {
     position: 'absolute',
     top: 10,
@@ -312,7 +254,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6347',
     borderRadius: 20,
     padding: 5,
-    zIndex: 1,
   },
   closeButtonText: {
     color: 'white',
@@ -326,7 +267,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#9E9E9E',
     borderRadius: 10,
     padding: 10,
-    zIndex: 1,
   },
   backButtonText: {
     color: 'white',
@@ -334,6 +274,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   noteScrollView: {
+    maxHeight: 200,
     width: '100%',
   },
   modalText: {
@@ -528,37 +469,6 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 10,
   },
-  noteImage: {
-    width: 200,
-    height: 200,
-    margin: 10,
-  },
-  imageContainer: {
-    position: 'relative',
-  },
-  deleteImageButton: {
-    position: 'absolute',
-    top: 5,
-    right: 5,
-    backgroundColor: 'rgba(255, 0, 0, 0.7)',
-    borderRadius: 15,
-    padding: 5,
-  },
-  deleteImageButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  addImageButton: {
-    backgroundColor: '#2196F3',
-    borderRadius: 10,
-    padding: 10,
-    marginTop: 10,
-  },
-  addImageButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
 });
 
-export default NoteModal;
+export default ImageModal;
