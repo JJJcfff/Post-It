@@ -305,25 +305,68 @@ const StickyNotesMap = () => {
     setImageUris([]);
   };
 
-  const handleLike = (markerId) => {
-    setMarkers((prevMarkers) =>
-      prevMarkers.map((marker) =>
-        marker.id === markerId ? { ...marker, likes: marker.likes + 1 } : marker
-      )
-    );
-    setFilteredMarkers((prevMarkers) =>
-      prevMarkers.map((marker) =>
-        marker.id === markerId ? { ...marker, likes: marker.likes + 1 } : marker
-      )
-    );
-    if (selectedMarker && selectedMarker.id === markerId) {
-      setSelectedMarker(prevMarker => ({
-        ...prevMarker,
-        likes: prevMarker.likes + 1
-      }));
+  const handleLike = async (markerId) => {
+    try {
+      const userLikesRef = doc(firestore, 'userLikes', `${userId}_${markerId}`);
+      const userLikesDoc = await getDoc(userLikesRef);
+
+      if (userLikesDoc.exists()) {
+        //unlike the marker
+        await deleteDoc(userLikesRef);
+        setMarkers((prevMarkers) =>
+          prevMarkers.map((marker) =>
+            marker.id === markerId ? { ...marker, likes: marker.likes - 1 } : marker
+          )
+        );
+        setFilteredMarkers((prevMarkers) =>
+          prevMarkers.map((marker) =>
+            marker.id === markerId ? { ...marker, likes: marker.likes - 1 } : marker
+          )
+        );
+        if (selectedMarker && selectedMarker.id === markerId) {
+          setSelectedMarker(prevMarker => ({
+            ...prevMarker,
+            likes: prevMarker.likes - 1
+          }));
+        }
+        const updatedMarker = markers.find((marker) => marker.id === markerId);
+        updateMarker(updatedMarker);
+        return;
+      }
+
+      setMarkers((prevMarkers) =>
+        prevMarkers.map((marker) =>
+          marker.id === markerId ? { ...marker, likes: marker.likes + 1 } : marker
+        )
+      );
+      setFilteredMarkers((prevMarkers) =>
+        prevMarkers.map((marker) =>
+          marker.id === markerId ? { ...marker, likes: marker.likes + 1 } : marker
+        )
+      );
+      if (selectedMarker && selectedMarker.id === markerId) {
+        setSelectedMarker(prevMarker => ({
+          ...prevMarker,
+          likes: prevMarker.likes + 1
+        }));
+      }
+      const updatedMarker = markers.find((marker) => marker.id === markerId);
+      updateMarker(updatedMarker);
+
+      await setDoc(userLikesRef, {
+        userId,
+        markerId,
+        likedAt: serverTimestamp(),
+      });
+
+    } catch (error) {
+      console.error('Error updating likes:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update likes',
+      });
     }
-    const updatedMarker = markers.find((marker) => marker.id === markerId);
-    updateMarker(updatedMarker);
   };
 
   const handleAddComment = () => {
@@ -531,13 +574,21 @@ const StickyNotesMap = () => {
         imageUris={imageUris}
         setImageUris={setImageUris}
         uploadImage={uploadImage}
+        style={styles.modal}
       />
-      <Toast />
-    </View>
+      <Toast style={styles.toast} />
+      </View>
   );
 };
 
 const styles = StyleSheet.create({
+  toast:{
+    zIndex: 99,
+    position: 'absolute',
+  },
+  modal: {
+    zIndex:1,
+  },
   container: {
     flex: 1,
   },
