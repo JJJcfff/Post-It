@@ -3,6 +3,7 @@ import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, S
 import Autocomplete from 'react-native-autocomplete-input';
 import ColorPicker, { Swatches, Preview, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Image as CachedImage } from 'react-native-expo-image-cache';
 
 const NoteModal = ({
@@ -57,20 +58,29 @@ const NoteModal = ({
         allowsEditing: true,
         quality: 1,
       });
-
+  
       let uris = result.canceled ? [] : result.assets.map(data => data.uri);
-
+  
       const uploadedImageUris = [];
-
+  
       for (const uri of uris) {
-        const uploadedUri = await uploadImage(uri);
+        // Compress and convert to JPG
+        const manipResult = await manipulateAsync(
+          uri,
+          [{ resize: { width: 800 } }], // Resize the image (optional)
+          { compress: 0.7, format: SaveFormat.JPEG } // Compress to 70% and convert to JPG
+        );
+  
+        const uploadedUri = await uploadImage(manipResult.uri);
         if (uploadedUri) {
           uploadedImageUris.push(uploadedUri);
           console.log("Image uploaded: ", uploadedUri);
-        } else { console.log("Error uploading image"); }
+        } else {
+          console.log("Error uploading image");
+        }
       }
       setImageUris([...imageUris, ...uploadedImageUris]);
-      
+  
     } catch (error) {
       console.log("Error picking image: ", error);
     }

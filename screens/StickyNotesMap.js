@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import MapView, { LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
+import ImageResizer from 'react-native-image-resizer';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
