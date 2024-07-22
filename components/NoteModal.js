@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import ColorPicker, { Swatches, Preview, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Image as CachedImage } from 'react-native-expo-image-cache';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 
 const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
@@ -91,6 +92,22 @@ const NoteModal = ({
     newImageUris.splice(index, 1);
     setImageUris(newImageUris);
   };
+
+  const renderImageItem = useCallback(({ item, index, drag, isActive }) => (
+    <TouchableOpacity
+      onLongPress={drag}
+      disabled={isActive}
+      style={[
+        styles.imageContainer,
+        { opacity: isActive ? 0.8 : 1 },
+      ]}
+    >
+      <CachedImage uri={item} style={styles.noteImage} />
+      <TouchableOpacity style={styles.deleteImageButton} onPress={() => handleDeleteImage(index)}>
+        <Text style={styles.deleteImageButtonText}>✕</Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ), []);
 
   return (
     <Modal
@@ -179,18 +196,13 @@ const NoteModal = ({
                 multiline={true}
                 scrollEnabled={false}
               />
-              <FlatList
+              <DraggableFlatList
                 data={imageUris}
+                onDragEnd={({ data }) => setImageUris(data)}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item, index }) => (
-                  <View style={styles.imageContainer}>
-                    <CachedImage uri={item} style={styles.noteImage} />
-                    <TouchableOpacity style={styles.deleteImageButton} onPress={() => handleDeleteImage(index)}>
-                      <Text style={styles.deleteImageButtonText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                renderItem={renderImageItem}
                 horizontal={true}
+                style={{maxHeight: 200}}
               />
               <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
                 <Text style={styles.addImageButtonText}>Add Image</Text>
