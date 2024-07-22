@@ -6,6 +6,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { Image as CachedImage } from 'react-native-expo-image-cache';
 import DraggableFlatList from 'react-native-draggable-flatlist';
+import ImageViewer from 'react-native-image-zoom-viewer';
+import RNModal from 'react-native-modal';
 
 const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
@@ -13,6 +15,10 @@ const NoteModal = ({
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor,
   imageUris, setImageUris, uploadImage
 }) => {
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [imageUrls, setImageUrls] = useState([]);
+  const [initialImageIndex, setInitialImageIndex] = useState(0);
+
   useEffect(() => {
     if (!color) {
       setColor('#FFE900');
@@ -97,6 +103,11 @@ const NoteModal = ({
     <TouchableOpacity
       onLongPress={drag}
       disabled={isActive}
+      onPress={() => {
+        setImageUrls(imageUris.map(uri => ({ url: uri })));
+        setInitialImageIndex(index);
+        setImageModalVisible(true);
+      }}
       style={[
         styles.imageContainer,
         { opacity: isActive ? 0.8 : 1 },
@@ -107,7 +118,7 @@ const NoteModal = ({
         <Text style={styles.deleteImageButtonText}>✕</Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  ), []);
+  ), [imageUris]);
 
   return (
     <Modal
@@ -136,8 +147,14 @@ const NoteModal = ({
                 <FlatList
                   data={selectedMarker?.imageUris || []}
                   keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => (
-                    <CachedImage uri={item} style={styles.noteImage} />
+                  renderItem={({ item, index }) => (
+                    <TouchableOpacity onPress={() => {
+                      setImageUrls(selectedMarker.imageUris.map(uri => ({ url: uri })));
+                      setInitialImageIndex(index);
+                      setImageModalVisible(true);
+                    }}>
+                      <CachedImage uri={item} style={styles.noteImage} />
+                    </TouchableOpacity>
                   )}
                   horizontal={true}
                 />
@@ -296,6 +313,15 @@ const NoteModal = ({
           )}
         </View>
       </KeyboardAvoidingView>
+
+      <RNModal isVisible={imageModalVisible} onBackdropPress={() => setImageModalVisible(false)} style={styles.fullScreenModal}>
+        <ImageViewer
+          imageUrls={imageUrls}
+          index={initialImageIndex}
+          onSwipeDown={() => setImageModalVisible(false)}
+          enableSwipeDown={true}
+        />
+      </RNModal>
     </Modal>
   );
 };
@@ -580,6 +606,10 @@ const styles = StyleSheet.create({
   addImageButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  fullScreenModal: {
+    margin: 0,
+    justifyContent: 'center',
   },
 });
 
