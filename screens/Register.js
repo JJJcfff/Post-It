@@ -28,10 +28,15 @@ const Register = ({ navigation }) => {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigation.navigate('StickyNotesMap'); // Navigate to StickyNotesMap on successful registration
+      navigation.navigate('StickyNotesCanvas'); // Navigate to StickyNotesMap on successful registration
     } catch (error) {
       console.log(error);
-      alert('Invalid email or password');
+      if (error.code === 'auth/email-already-in-use') {
+        alert('Email already in use');
+      }
+      else {
+        alert('Invalid email or password');
+      }
     }
     setLoading(false);
   };
