@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import MapView, { LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import ImageResizer from 'react-native-image-resizer';
@@ -107,18 +107,21 @@ const StickyNotesMap = ({ navigation }) => {
         textColor: '#000000',
         imageUris: [],
       }
+      
+      setSelectedMarker(newMarker);
+      setNoteText('');
+      setTagText('');
+      setTags([]);
+      setImageUris([]);
+
+      setModalVisible(true);
+      setEditVisible(true);
+
       setDoc(newMarkerRef, newMarker).then(() => {
         setMarkers([...markers, newMarker]);
         setFilteredMarkers([...markers, newMarker]);
-        setSelectedMarker(newMarker);
-        setNoteText('');
-        setTagText('');
-        setTags([]);
-        setImageUris([]);
-
-        setModalVisible(true);
-        setEditVisible(true);
       });
+
     } catch (error) {
       console.error('Error adding document: ', error);
       Toast.show({
@@ -166,6 +169,11 @@ const StickyNotesMap = ({ navigation }) => {
 
   const deleteMarker = async (markerId) => {
     try {
+      // Remove images from storage
+      const marker = markers.find(marker => marker.id === markerId);
+      if (marker.imageUris) {
+        removeImage(marker.imageUris);
+      }
       await deleteDoc(doc(firestore, 'stickyNoteMarkers', markerId));
       console.log('Document successfully deleted!');
     } catch (error) {
@@ -463,8 +471,22 @@ const StickyNotesMap = ({ navigation }) => {
       return downloadURL;
     } catch (error) {
       console.error('Error uploading image:', error);
+      return null;
     }
   };
+
+  const removeImage = async (imageUris) => {
+    try {
+      for (let uri of imageUris) {
+        const filename = uri.split('/').pop();
+        const storageRef = ref(storage, `images/${selectedMarker.id}/${filename}`);
+        await deleteDoc(storageRef);
+      }
+    } catch (error) {
+      console.error('Error removing image:', error);
+    }
+  }
+  
 
 
   const handleAddTag = () => {
@@ -508,6 +530,10 @@ const StickyNotesMap = ({ navigation }) => {
 
   const handleDeleteTag = (tagToDelete) => {
     setTags(tags.filter(tag => tag !== tagToDelete));
+  };
+
+  const handleProfilePress = () => {
+    navigation.navigate('UserProfile');
   };
 
   return (
@@ -575,10 +601,14 @@ const StickyNotesMap = ({ navigation }) => {
         imageUris={imageUris}
         setImageUris={setImageUris}
         uploadImage={uploadImage}
+        removeImage={removeImage}
         style={styles.modal}
       />
       <Toast style={styles.toast} />
-      </View>
+      <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
+        <Text style={styles.profileButtonText}>Profile</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 
@@ -616,9 +646,9 @@ const styles = StyleSheet.create({
   },
   profileButton: {
     position: 'absolute',
-    top: 40,
-    right: 20,
-    backgroundColor: '#1e90ff',
+    bottom: 50,
+    right: 30,
+    backgroundColor: 'grey',
     padding: 10,
     borderRadius: 5,
   },

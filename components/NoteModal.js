@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, Modal, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import ColorPicker, { Swatches, Preview, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +18,7 @@ const NoteModal = ({
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
+  const [uploadingImages, setUploadingImages] = useState([]);
 
   useEffect(() => {
     if (!color) {
@@ -27,6 +28,13 @@ const NoteModal = ({
       setTextColor('#000000');
     }
   }, []);
+
+  useEffect(() => {
+    if (selectedMarker && selectedMarker.imageUris) {
+      setImageUris(selectedMarker.imageUris);
+    }
+  }, [selectedMarker]);
+  
 
   const onSelectColor = (color) => {
     const selectedColor = color.hex || color;
@@ -62,32 +70,35 @@ const NoteModal = ({
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
         quality: 1,
+        allowsMultipleSelection: true,
       });
-  
-      let uris = result.canceled ? [] : result.assets.map(data => data.uri);
-  
-      const uploadedImageUris = [];
-  
-      for (const uri of uris) {
-        // Compress and convert to JPG
-        const manipResult = await manipulateAsync(
-          uri,
-          [{ resize: { width: 800 } }], // Resize the image (optional)
-          { compress: 0.7, format: SaveFormat.JPEG } // Compress to 70% and convert to JPG
-        );
-  
-        const uploadedUri = await uploadImage(manipResult.uri);
-        if (uploadedUri) {
-          uploadedImageUris.push(uploadedUri);
-          console.log("Image uploaded: ", uploadedUri);
-        } else {
-          console.log("Error uploading image");
+
+      if (!result.canceled) {
+        const newUploadingImages = result.assets.map(asset => ({
+          uri: asset.uri,
+          isUploading: true
+        }));
+        setUploadingImages(prev => [...prev, ...newUploadingImages]);
+
+        for (const asset of result.assets) {
+          const manipResult = await manipulateAsync(
+            asset.uri,
+            [{ resize: { width: 800 } }],
+            { compress: 0.7, format: SaveFormat.JPEG }
+          );
+
+          const uploadedUri = await uploadImage(manipResult.uri);
+          if (uploadedUri) {
+            setImageUris(prev => [...prev, uploadedUri]);
+            console.log("Image uploaded: ", uploadedUri);
+          } else {
+            console.log("Error uploading image");
+          }
+
+          setUploadingImages(prev => prev.filter(img => img.uri !== asset.uri));
         }
       }
-      setImageUris([...imageUris, ...uploadedImageUris]);
-  
     } catch (error) {
       console.log("Error picking image: ", error);
     }
@@ -99,26 +110,60 @@ const NoteModal = ({
     setImageUris(newImageUris);
   };
 
-  const renderImageItem = useCallback(({ item, index, drag, isActive }) => (
+
+  const renderViewImageItem = ({ item, index }) => (
     <TouchableOpacity
-      onLongPress={drag}
-      disabled={isActive}
       onPress={() => {
-        setImageUrls(imageUris.map(uri => ({ url: uri })));
+        setImageUrls(selectedMarker.imageUris.map(uri => ({ url: uri })));
         setInitialImageIndex(index);
         setImageModalVisible(true);
       }}
-      style={[
-        styles.imageContainer,
-        { opacity: isActive ? 0.8 : 1 },
-      ]}
+      style={styles.imageContainer}
     >
-      <CachedImage uri={item} style={styles.noteImage} />
-      <TouchableOpacity style={styles.deleteImageButton} onPress={() => handleDeleteImage(index)}>
-        <Text style={styles.deleteImageButtonText}>✕</Text>
-      </TouchableOpacity>
+      <View style={styles.squareImageContainer}>
+        <CachedImage uri={item} style={styles.noteImage} />
+      </View>
     </TouchableOpacity>
-  ), [imageUris]);
+  );
+
+  const renderEditImageItem = useCallback(({ item, index, drag, isActive }) => {
+    const isUploading = uploadingImages.some(img => img.uri === item);
+  
+    return (
+      <TouchableOpacity
+        onLongPress={drag}
+        disabled={isActive || isUploading}
+        onPress={() => {
+          if (!isUploading) {
+            const correctIndex = imageUris.indexOf(item); 
+            setImageUrls(imageUris.map(uri => ({ url: uri })));
+            setInitialImageIndex(correctIndex); 
+            setImageModalVisible(true);
+          } else {
+            console.log("Image is uploading, cannot view yet");
+          }
+        }}
+        style={[
+          styles.imageContainer,
+          { opacity: isActive ? 0.8 : 1 },
+        ]}
+      >
+        <View style={styles.squareImageContainer}>
+          {isUploading ? (
+            <ActivityIndicator size="large" color="#0000ff" />
+          ) : (
+            <CachedImage uri={item} style={styles.noteImage} />
+          )}
+        </View>
+        {!isUploading && (
+          <TouchableOpacity style={styles.deleteImageButton} onPress={() => handleDeleteImage(index)}>
+            <Text style={styles.deleteImageButtonText}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </TouchableOpacity>
+    );
+  }, [imageUris, uploadingImages]);
+  
 
   return (
     <Modal
@@ -147,16 +192,10 @@ const NoteModal = ({
                 <FlatList
                   data={selectedMarker?.imageUris || []}
                   keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item, index }) => (
-                    <TouchableOpacity onPress={() => {
-                      setImageUrls(selectedMarker.imageUris.map(uri => ({ url: uri })));
-                      setInitialImageIndex(index);
-                      setImageModalVisible(true);
-                    }}>
-                      <CachedImage uri={item} style={styles.noteImage} />
-                    </TouchableOpacity>
-                  )}
+                  renderItem={renderViewImageItem}
                   horizontal={true}
+                  style={styles.imageList}
+                  contentContainerStyle={styles.imageListContent}
                 />
               </ScrollView>
               <View style={styles.likeCommentRow}>
@@ -213,17 +252,24 @@ const NoteModal = ({
                 multiline={true}
                 scrollEnabled={false}
               />
-              <DraggableFlatList
-                data={imageUris}
-                onDragEnd={({ data }) => setImageUris(data)}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={renderImageItem}
-                horizontal={true}
-                style={{maxHeight: 200}}
-              />
-              <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
-                <Text style={styles.addImageButtonText}>Add Image</Text>
-              </TouchableOpacity>
+              {imageUris.length > 0 && (
+                <>
+                  <DraggableFlatList
+                    data={[...imageUris, ...uploadingImages.map(img => img.uri)]}
+                    onDragEnd={({ data }) => setImageUris(data.filter(uri => !uploadingImages.some(img => img.uri === uri)))}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={renderEditImageItem}
+                    horizontal={true}
+                    style={styles.imageList}
+                    contentContainerStyle={styles.imageListContent}
+                  />
+                </>
+              )}
+              <>
+                <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
+                  <Text style={styles.addImageButtonText}>Add Image</Text>
+                </TouchableOpacity>
+              </>
               <View style={styles.tagsContainer}>
                 {tags.map((tag, index) => (
                   <View key={index} style={styles.tagBox}>
@@ -313,7 +359,6 @@ const NoteModal = ({
           )}
         </View>
       </KeyboardAvoidingView>
-
       <RNModal isVisible={imageModalVisible} onBackdropPress={() => setImageModalVisible(false)} style={styles.fullScreenModal}>
         <ImageViewer
           imageUrls={imageUrls}
@@ -581,8 +626,24 @@ const styles = StyleSheet.create({
     height: 200,
     margin: 10,
   },
+  imageList: {
+    maxHeight: 220,
+  },
+  imageListContent: {
+    paddingHorizontal: 10,
+  },
   imageContainer: {
     position: 'relative',
+    marginHorizontal: 5,
+  },
+  squareImageContainer: {
+    width: 180,
+    height: 180,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    overflow: 'hidden',
+    borderRadius: 10,
   },
   deleteImageButton: {
     position: 'absolute',
@@ -611,6 +672,15 @@ const styles = StyleSheet.create({
     margin: 0,
     justifyContent: 'center',
   },
+  squareImageContainer: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0', // Light grey background
+    overflow: 'hidden',
+  },
+
 });
 
 export default NoteModal;
