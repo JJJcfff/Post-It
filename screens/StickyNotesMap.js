@@ -5,7 +5,7 @@ import Toast from 'react-native-toast-message';
 import ImageResizer from 'react-native-image-resizer';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
-import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, getStorage, deleteObject } from 'firebase/storage';
 import customMapStyle from '../assets/customMapStyle.json';
 import MarkerComponent from '../components/MarkerComponent';
 import NoteModal from '../components/NoteModal';
@@ -478,15 +478,13 @@ const StickyNotesMap = ({ navigation }) => {
   const removeImage = async (imageUris) => {
     try {
       for (let uri of imageUris) {
-        const filename = uri.split('/').pop();
-        const storageRef = ref(storage, `images/${selectedMarker.id}/${filename}`);
-        await deleteDoc(storageRef);
+        const storageRef = ref(storage, uri);
+        await deleteObject(storageRef);
       }
     } catch (error) {
       console.error('Error removing image:', error);
     }
-  }
-  
+  };
 
 
   const handleAddTag = () => {

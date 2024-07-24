@@ -13,7 +13,7 @@ const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor,
-  imageUris, setImageUris, uploadImage
+  imageUris, setImageUris, uploadImage, removeImage
 }) => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
@@ -104,11 +104,13 @@ const NoteModal = ({
     }
   };
 
-  const handleDeleteImage = (index) => {
-    const newImageUris = [...imageUris];
-    newImageUris.splice(index, 1);
-    setImageUris(newImageUris);
+  const handleDeleteImage = (imageUri) => {
+    let UrisToRemove = [];
+    UrisToRemove.push(imageUri);
+    removeImage(UrisToRemove);
+    setImageUris(prevImageUris => prevImageUris.filter(uri => uri !== imageUri));
   };
+  
 
 
   const renderViewImageItem = ({ item, index }) => (
@@ -135,9 +137,9 @@ const NoteModal = ({
         disabled={isActive || isUploading}
         onPress={() => {
           if (!isUploading) {
-            const correctIndex = imageUris.indexOf(item); 
+            const correctIndex = imageUris.indexOf(item); // Find the correct index
             setImageUrls(imageUris.map(uri => ({ url: uri })));
-            setInitialImageIndex(correctIndex); 
+            setInitialImageIndex(correctIndex);
             setImageModalVisible(true);
           } else {
             console.log("Image is uploading, cannot view yet");
@@ -156,7 +158,10 @@ const NoteModal = ({
           )}
         </View>
         {!isUploading && (
-          <TouchableOpacity style={styles.deleteImageButton} onPress={() => handleDeleteImage(index)}>
+          <TouchableOpacity 
+            style={styles.deleteImageButton} 
+            onPress={() => handleDeleteImage(item)} // Pass the item itself
+          >
             <Text style={styles.deleteImageButtonText}>✕</Text>
           </TouchableOpacity>
         )}
