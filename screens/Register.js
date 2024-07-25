@@ -7,11 +7,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ImageBackground,
 } from 'react-native';
 import { firebaseauth } from '../FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-
 
 const Register = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -28,13 +26,12 @@ const Register = ({ navigation }) => {
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigation.navigate('StickyNotesCanvas'); // Navigate to StickyNotesMap on successful registration
+      navigation.navigate('StickyNotesMap');
     } catch (error) {
       console.log(error);
       if (error.code === 'auth/email-already-in-use') {
         alert('Email already in use');
-      }
-      else {
+      } else {
         alert('Invalid email or password');
       }
     }
@@ -42,81 +39,68 @@ const Register = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground
-      source={{ uri: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f' }}
-      style={styles.background}
-    >
-      <KeyboardAvoidingView behavior="padding" style={styles.container}>
-        <Text style={styles.title}>Create an Account</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            placeholderTextColor="#999"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor="#999"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-            placeholderTextColor="#999"
-          />
-        </View>
-        {loading ? (
-          <ActivityIndicator size="large" color="#fff" />
-        ) : (
-          <>
-            <TouchableOpacity style={styles.button} onPress={signUp}>
-              <Text style={styles.buttonText}>Sign Up</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.buttonSecondary}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.buttonSecondaryText}>Back to Login</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </KeyboardAvoidingView>
-    </ImageBackground>
+    <KeyboardAvoidingView behavior="padding" style={styles.container}>
+      <Text style={styles.title}>Create an Account</Text>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          secureTextEntry
+          placeholderTextColor="#999"
+        />
+      </View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#000" />
+      ) : (
+        <>
+          <TouchableOpacity style={styles.button} onPress={signUp}>
+            <Text style={styles.buttonText}>Sign Up</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.buttonSecondary}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.buttonSecondaryText}>Back to Login</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </KeyboardAvoidingView>
   );
 };
 
 export default Register;
 
 const styles = StyleSheet.create({
-  background: {
+  container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    height: '100%',
-  },
-  container: {
-    backgroundColor: 'rgba(0,0,0,0.5)',
     padding: 20,
-    borderRadius: 10,
-    width: '90%',
-    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 36,
-    color: '#fff',
+    fontSize: 30,
+    color: '#333',
     marginBottom: 20,
     textAlign: 'center',
-    fontWeight: 'bold',
   },
   inputContainer: {
     width: '100%',
@@ -125,11 +109,13 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 50,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: '#f1f1f1',
     borderRadius: 10,
     paddingHorizontal: 10,
     marginVertical: 10,
-    color: '#fff',
+    color: '#333',
+    borderColor: '#ddd',
+    borderWidth: 1,
   },
   button: {
     backgroundColor: '#1e90ff',
@@ -143,10 +129,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
   },
   buttonSecondary: {
-    borderColor: '#fff',
+    borderColor: '#1e90ff',
     borderWidth: 1,
     paddingVertical: 15,
     paddingHorizontal: 30,
@@ -156,8 +141,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonSecondaryText: {
-    color: '#fff',
+    color: '#1e90ff',
     fontSize: 18,
-    fontWeight: 'bold',
   },
 });
