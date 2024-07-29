@@ -13,12 +13,14 @@ const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor,
-  imageUris, setImageUris, uploadImage, removeImage
+  imageUris, setImageUris, uploadImage, removeImage,likeButtonPressable, setLikeButtonPressable
 }) => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
   const [uploadingImages, setUploadingImages] = useState([]);
+  const [showBackgroundColorPicker, setShowBackgroundColorPicker] = useState(false);
+  const [showTextColorPicker, setShowTextColorPicker] = useState(false);
 
   useEffect(() => {
     if (!color) {
@@ -27,6 +29,9 @@ const NoteModal = ({
     if (!textColor) {
       setTextColor('#000000');
     }
+    setShowBackgroundColorPicker(false);
+    setShowTextColorPicker(false);
+    setLikeButtonPressable(true);
   }, []);
 
   useEffect(() => {
@@ -34,7 +39,6 @@ const NoteModal = ({
       setImageUris(selectedMarker.imageUris);
     }
   }, [selectedMarker]);
-  
 
   const onSelectColor = (color) => {
     const selectedColor = color.hex || color;
@@ -110,8 +114,14 @@ const NoteModal = ({
     removeImage(UrisToRemove);
     setImageUris(prevImageUris => prevImageUris.filter(uri => uri !== imageUri));
   };
-  
 
+  const handleLikeButtonPressed = (id) => {
+    if (likeButtonPressable) {
+      handleLike(id);
+    } else {
+      console.log("Like button is not pressable");
+    }
+  }
 
   const renderViewImageItem = ({ item, index }) => (
     <TouchableOpacity
@@ -130,7 +140,7 @@ const NoteModal = ({
 
   const renderEditImageItem = useCallback(({ item, index, drag, isActive }) => {
     const isUploading = uploadingImages.some(img => img.uri === item);
-  
+
     return (
       <TouchableOpacity
         onLongPress={drag}
@@ -158,8 +168,8 @@ const NoteModal = ({
           )}
         </View>
         {!isUploading && (
-          <TouchableOpacity 
-            style={styles.deleteImageButton} 
+          <TouchableOpacity
+            style={styles.deleteImageButton}
             onPress={() => handleDeleteImage(item)} // Pass the item itself
           >
             <Text style={styles.deleteImageButtonText}>✕</Text>
@@ -168,7 +178,6 @@ const NoteModal = ({
       </TouchableOpacity>
     );
   }, [imageUris, uploadingImages]);
-  
 
   return (
     <Modal
@@ -204,7 +213,7 @@ const NoteModal = ({
                 />
               </ScrollView>
               <View style={styles.likeCommentRow}>
-                <TouchableOpacity style={styles.likeButton} onPress={() => handleLike(selectedMarker.id)}>
+                <TouchableOpacity style={styles.likeButton} onPress={() => handleLikeButtonPressed(selectedMarker.id)}>
                   <Text style={styles.likeButtonText}>👍 Like ({selectedMarker?.likes})</Text>
                 </TouchableOpacity>
                 {selectedMarker?.user === userId && (
@@ -247,111 +256,129 @@ const NoteModal = ({
               </View>
             </>
           ) : (
-            <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-              <Text style={styles.modalText}>Edit Note</Text>
-              <TextInput
-                style={[styles.input, styles.borderedInput, { backgroundColor: color, color: textColor }]}
-                value={noteText}
-                onChangeText={setNoteText}
-                placeholder="Edit your note"
-                multiline={true}
-                scrollEnabled={false}
-              />
-              {imageUris.length > 0 && (
-                <>
-                  <DraggableFlatList
-                    data={[...imageUris, ...uploadingImages.map(img => img.uri)]}
-                    onDragEnd={({ data }) => setImageUris(data.filter(uri => !uploadingImages.some(img => img.uri === uri)))}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderItem={renderEditImageItem}
-                    horizontal={true}
-                    style={styles.imageList}
-                    contentContainerStyle={styles.imageListContent}
-                  />
-                </>
-              )}
-              <>
-                <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
-                  <Text style={styles.addImageButtonText}>Add Image</Text>
-                </TouchableOpacity>
-              </>
-              <View style={styles.tagsContainer}>
-                {tags.map((tag, index) => (
-                  <View key={index} style={styles.tagBox}>
-                    <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
-                    <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
-                      <Text style={styles.deleteTagText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-              <View style={styles.tagInputRow}>
-                <Autocomplete
-                  style={styles.tagInput}
-                  containerStyle={styles.autocompleteContainer}
-                  data={suggestions}
-                  value={tagText}
-                  onChangeText={(text) => {
-                    setTagText(text);
-                    searchTags(text);
-                  }}
-                  placeholder="Add a tag"
-                  placeholderTextColor={'#666'}
-                  flatListProps={{
-                    keyExtractor: (_, idx) => idx.toString(),
-                    renderItem: ({ item }) => (
-                      <TouchableOpacity onPress={() => {
-                        setTagText(item);
-                        setSuggestions([]);
-                      }}>
-                        <Text style={styles.suggestionText}>{item}</Text>
-                      </TouchableOpacity>
-                    ),
-                  }}
+            <View style= {{width:'100%'}}>
+              <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+                <Text style={styles.modalText}>Edit Note</Text>
+                <TextInput
+                  style={[styles.input, styles.borderedInput, { backgroundColor: color, color: textColor }]}
+                  value={noteText}
+                  onChangeText={setNoteText}
+                  placeholder="Edit your note"
+                  multiline={true}
+                  scrollEnabled={false}
+                  autoFocus={true}
                 />
-                <TouchableOpacity style={styles.addTagButton} onPress={handleAddTag}>
-                  <Text style={styles.addTagButtonText}>Add Tag</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.colorPickerContainer}>
-                <Text style={styles.colorPickerLabel}>Background Color:</Text>
-                <ColorPicker
-                  key="backgroundColorPicker"
-                  value={color}
-                  sliderThickness={20}
-                  thumbSize={30}
-                  onComplete={onSelectColor}
-                  style={{ width: '95%' }}
-                >
-                  <Preview
-                    hideInitialColor={true}
-                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                {imageUris.length > 0 && (
+                  <>
+                    <DraggableFlatList
+                      data={[...imageUris, ...uploadingImages.map(img => img.uri)]}
+                      onDragEnd={({ data }) => setImageUris(data.filter(uri => !uploadingImages.some(img => img.uri === uri)))}
+                      keyExtractor={(item, index) => index.toString()}
+                      renderItem={renderEditImageItem}
+                      horizontal={true}
+                      style={styles.imageList}
+                      contentContainerStyle={styles.imageListContent}
+                    />
+                  </>
+                )}
+                <>
+                  <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
+                    <Text style={styles.addImageButtonText}>Add Image</Text>
+                  </TouchableOpacity>
+                </>
+                <View style={styles.tagsContainer}>
+                  {tags.map((tag, index) => (
+                    <View key={index} style={styles.tagBox}>
+                      <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
+                      <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
+                        <Text style={styles.deleteTagText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.tagInputRow}>
+                  <Autocomplete
+                    style={styles.tagInput}
+                    containerStyle={styles.autocompleteContainer}
+                    data={suggestions}
+                    value={tagText}
+                    onChangeText={(text) => {
+                      setTagText(text);
+                      searchTags(text);
+                    }}
+                    placeholder="Add a tag"
+                    placeholderTextColor={'#666'}
+                    flatListProps={{
+                      keyExtractor: (_, idx) => idx.toString(),
+                      renderItem: ({ item }) => (
+                        <TouchableOpacity onPress={() => {
+                          setTagText(item);
+                          setSuggestions([]);
+                        }}>
+                          <Text style={styles.suggestionText}>{item}</Text>
+                        </TouchableOpacity>
+                      ),
+                    }}
                   />
-                  <HueSlider />
-                  <HSLSaturationSlider style={{ marginTop: 20 }} />
-                  <Swatches
-                    colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']}
-                    style={{ marginTop: 20 }}
-                  />
-                </ColorPicker>
-                <Text style={styles.colorPickerLabel}>Text Color:</Text>
-                <ColorPicker
-                  key="textColorPicker"
-                  value={textColor}
-                  sliderThickness={20}
-                  thumbSize={30}
-                  onComplete={onSelectTextColor}
-                  style={{ width: '95%' }}
-                >
-                  <Preview
-                    hideInitialColor={true}
-                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
-                  />
-                  <Swatches
-                    colors={['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#FFFFFF']}
-                  />
-                </ColorPicker>
-              </View>
+                  <TouchableOpacity style={styles.addTagButton} onPress={handleAddTag}>
+                    <Text style={styles.addTagButtonText}>Add Tag</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.colorPickerContainer}>
+                  <TouchableOpacity onPress={() => setShowBackgroundColorPicker(!showBackgroundColorPicker)}>
+                    <Text style={styles.colorPickerLabel}>Background Color:</Text>
+                  </TouchableOpacity>
+                  <ColorPicker
+                    key="backgroundColorPicker"
+                    value={color}
+                    sliderThickness={20}
+                    thumbSize={30}
+                    onComplete={onSelectColor}
+                    style={{ width: '95%' }}
+                  >
+                    <TouchableOpacity onPress={() => setShowBackgroundColorPicker(!showBackgroundColorPicker)}>
+                      <Preview
+                        hideInitialColor={true}
+                        style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                      />
+                    </TouchableOpacity>
+                    {showBackgroundColorPicker && (
+                      <>
+                        <HueSlider />
+                        <HSLSaturationSlider style={{ marginTop: 20 }} />
+                        <Swatches
+                          colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']}
+                          style={{ marginTop: 20 }}
+                        />
+                      </>
+                    )}
+                  </ColorPicker>
+                  <TouchableOpacity onPress={() => setShowTextColorPicker(!showTextColorPicker)}>
+                    <Text style={styles.colorPickerLabel}>Text Color:</Text>
+                  </TouchableOpacity>
+                  <ColorPicker
+                    key="textColorPicker"
+                    value={textColor}
+                    sliderThickness={20}
+                    thumbSize={30}
+                    onComplete={onSelectTextColor}
+                    style={{ width: '95%' }}
+                  >
+                    <TouchableOpacity onPress={() => setShowTextColorPicker(!showTextColorPicker)}>
+                      <Preview
+                        hideInitialColor={true}
+                        style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                      />
+                    </TouchableOpacity>
+                    {showTextColorPicker && (
+                      <Swatches
+                        colors={['#000000', '#333333', '#666666', '#999999', '#CCCCCC', '#FFFFFF']}
+                      />
+                    )}
+                  </ColorPicker>
+                </View>
+
+              </ScrollView>
               <View style={[styles.buttonRow]}>
                 <TouchableOpacity style={styles.button} onPress={handleSave}>
                   <Text style={styles.buttonText}>Save</Text>
@@ -360,7 +387,7 @@ const NoteModal = ({
                   <Text style={styles.buttonText}>Delete</Text>
                 </TouchableOpacity>
               </View>
-            </ScrollView>
+            </View>
           )}
         </View>
       </KeyboardAvoidingView>
@@ -385,10 +412,12 @@ const styles = StyleSheet.create({
   },
   modalView: {
     width: '100%',
-    maxHeight: '80%',
+    maxHeight: '90%',
     backgroundColor: 'white',
     borderRadius: 20,
-    padding: 30,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 30,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
@@ -520,8 +549,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 0,
-    paddingTop: 10,
+    padding: 10,
   },
   button: {
     backgroundColor: '#4CAF50',
@@ -564,6 +592,8 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     width: '100%',
+    maxHeight: '95%',
+    marginTop: 20,
   },
   scrollContent: {
     alignItems: 'center',
@@ -613,12 +643,13 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     width: '100%',
+    minHeight: 80,
   },
   colorPickerContainer: {
     width: '90%',
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 50,
   },
   colorPickerLabel: {
     fontSize: 16,
@@ -677,15 +708,6 @@ const styles = StyleSheet.create({
     margin: 0,
     justifyContent: 'center',
   },
-  squareImageContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0', // Light grey background
-    overflow: 'hidden',
-  },
-
 });
 
 export default NoteModal;

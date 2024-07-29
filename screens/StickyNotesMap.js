@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity,Keyboard} from 'react-native';
 import MapView, { LocalTile } from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import ImageResizer from 'react-native-image-resizer';
-import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot,query,where,orderBy,limit } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import { ref, uploadBytes, getDownloadURL, getStorage, deleteObject } from 'firebase/storage';
 import customMapStyle from '../assets/customMapStyle.json';
@@ -21,6 +21,7 @@ const StickyNotesMap = ({ navigation }) => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
+  const [likeButtonPressable, setLikeButtonPressable] = useState(true);
 
   const [noteText, setNoteText] = useState('');
   const [commentText, setCommentText] = useState('');
@@ -316,6 +317,7 @@ const StickyNotesMap = ({ navigation }) => {
 
   const handleLike = async (markerId) => {
     try {
+      setLikeButtonPressable(false);
       const userLikesRef = doc(firestore, 'userLikes', `${userId}_${markerId}`);
       const userLikesDoc = await getDoc(userLikesRef);
 
@@ -340,6 +342,7 @@ const StickyNotesMap = ({ navigation }) => {
         }
         const updatedMarker = markers.find((marker) => marker.id === markerId);
         updateMarker(updatedMarker);
+        setLikeButtonPressable(true);
         return;
       }
 
@@ -368,6 +371,8 @@ const StickyNotesMap = ({ navigation }) => {
         likedAt: serverTimestamp(),
       });
 
+      setLikeButtonPressable(true);
+
     } catch (error) {
       console.error('Error updating likes:', error);
       Toast.show({
@@ -375,6 +380,7 @@ const StickyNotesMap = ({ navigation }) => {
         text1: 'Error',
         text2: 'Failed to update likes',
       });
+      setLikeButtonPressable(true);
     }
   };
 
@@ -552,10 +558,10 @@ const StickyNotesMap = ({ navigation }) => {
           minZoomLevel={0}
           maxZoomLevel={20}
         >
-          <LocalTile
+          {/* <LocalTile
             pathTemplate={'../assets/tiles/white_tile.png'}
             tileSize={256}
-          />
+          /> */}
           {filteredMarkers.map((marker) => (
             <MarkerComponent
               key={marker.id}
@@ -601,6 +607,8 @@ const StickyNotesMap = ({ navigation }) => {
         uploadImage={uploadImage}
         removeImage={removeImage}
         style={styles.modal}
+        setLikeButtonPressable={setLikeButtonPressable}
+        likeButtonPressable={likeButtonPressable}
       />
       <Toast style={styles.toast} />
       <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
