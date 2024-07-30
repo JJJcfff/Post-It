@@ -536,9 +536,6 @@ const StickyNotesMap = ({ navigation }) => {
     setTags(tags.filter(tag => tag !== tagToDelete));
   };
 
-  const handleProfilePress = () => {
-    navigation.navigate('UserProfile');
-  };
 
   return (
     <View style={styles.container}>
@@ -611,9 +608,6 @@ const StickyNotesMap = ({ navigation }) => {
         likeButtonPressable={likeButtonPressable}
       />
       <Toast style={styles.toast} />
-      <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
-        <Text style={styles.profileButtonText}>Profile</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -649,17 +643,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#0000ff',
-  },
-  profileButton: {
-    position: 'absolute',
-    bottom: 50,
-    right: 30,
-    backgroundColor: 'grey',
-    padding: 10,
-    borderRadius: 5,
-  },
-  profileButtonText: {
-    color: 'white',
   },
 });
 

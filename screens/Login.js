@@ -26,6 +26,7 @@ const Login = ({ navigation }) => {
     if (debug) {
       setEmail(debugEmail);
       setPassword(debugPassword);
+      console.log('Debug mode enabled');
     }
   }, []);
 
@@ -33,7 +34,6 @@ const Login = ({ navigation }) => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate('StickyNotesMap');
     } catch (error) {
       console.log(error);
       alert('Invalid email or password');

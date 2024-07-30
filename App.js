@@ -1,29 +1,22 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import Login from './screens/Login';
-import Register from './screens/Register';
-import ChatBot from './screens/ChatBot';
-import StickyNotesMap from './screens/StickyNotesMap.js';
-import UserProfile from './screens/UserProfile';
+import React, {useEffect, useState} from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import AuthStackNavigator from './navigators/AuthStack';
+import MainTabNavigator from './navigators/BottomTabNavigator';
+import {firebaseauth} from './FirebaseConfig';
 
+function App() {
+  const [user, setUser] = useState(null);
 
-const Stack = createStackNavigator();
+  useEffect(() => {
+    return firebaseauth.onAuthStateChanged(setUser);
+  }, []);
 
-const App = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Register" component={Register} />
-        <Stack.Screen name="ChatBot" component={ChatBot} />
-        {/* <Stack.Screen name="StickyNotesCanvas" component={StickyNotesCanvas} /> */}
-        <Stack.Screen name="StickyNotesMap" component={StickyNotesMap} />
-        <Stack.Screen name="UserProfile" component={UserProfile} />
-      </Stack.Navigator>
-    </NavigationContainer>
+      <NavigationContainer>
+        {user ? <MainTabNavigator /> : <AuthStackNavigator />}
+      </NavigationContainer>
   );
-};
+}
+
 
 export default App;
-
