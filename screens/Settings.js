@@ -31,7 +31,6 @@ const Settings = ({ navigation }) => {
         try {
             await auth.signOut();
             console.log('Logout successful');
-            navigation.navigate('Login');
         } catch (error) {
             console.error('Logout failed:', error);
         }

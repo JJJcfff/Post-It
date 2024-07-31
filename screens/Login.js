@@ -18,7 +18,7 @@ const Login = ({ navigation }) => {
   const auth = firebaseauth;
 
   useEffect(() => {
-    const debug = false; // Set to true if you want to enable debug mode
+    const debug = true; // Set to true if you want to enable debug mode
     if (debug) {
       setEmail('1@1.com');
       setPassword('111111');
