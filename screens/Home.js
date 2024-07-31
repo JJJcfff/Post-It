@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
-import { firebaseauth, firestore } from '../FirebaseConfig';
+import React, {useState, useEffect} from 'react';
+import {View, Text, TextInput, Button, FlatList, StyleSheet} from 'react-native';
+import {firebaseauth, firestore} from '../FirebaseConfig';
 
-const Home = ({ navigation }) => {
+const Home = ({navigation}) => {
     //nothing for now
     return (
         <View style={styles.container}>
