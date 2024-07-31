@@ -18,26 +18,19 @@ const Login = ({ navigation }) => {
   const auth = firebaseauth;
 
   useEffect(() => {
-<<<<<<< Updated upstream
+    const debug = false; // Set to true if you want to enable debug mode
     if (debug) {
-      setEmail(debugEmail);
-      setPassword(debugPassword);
+      setEmail('1@1.com');
+      setPassword('111111');
       console.log('Debug mode enabled');
     }
-=======
-    setEmail('');
-    setPassword('');
->>>>>>> Stashed changes
   }, []);
 
   const signIn = async () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-<<<<<<< Updated upstream
-=======
-      navigation.navigate('StickyNotesMap'); 
->>>>>>> Stashed changes
+      navigation.navigate('StickyNotesMap');
     } catch (error) {
       console.log(error);
       alert('Invalid email or password');
@@ -66,7 +59,7 @@ const Login = ({ navigation }) => {
           placeholderTextColor="#aaa"
         />
         {loading ? (
-          <ActivityIndicator size="large" color="#FFA000" />
+          <ActivityIndicator size="large" color="#FF6B6B" />
         ) : (
           <TouchableOpacity style={styles.button} onPress={signIn}>
             <Text style={styles.buttonText}>Sign In</Text>
@@ -87,7 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9F8F4', // Light background color
+    backgroundColor: '#F9F9F9',
   },
   innerContainer: {
     width: '80%',
@@ -100,15 +93,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1B1B1B', // Dark text color
+    color: '#333',
     marginBottom: 20,
+    fontFamily: 'YourFontFamily', // Change to the desired font family
   },
   input: {
     width: '100%',
     height: 50,
-    borderColor: '#E0E0E0', // Light border color
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 5,
     paddingHorizontal: 15,
     marginVertical: 10,
     backgroundColor: '#FFF',
@@ -117,8 +111,8 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: '#FFA000', // Button color
-    borderRadius: 8,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
@@ -129,7 +123,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   registerText: {
-    color: '#FF6F61',
+    color: '#FF6B6B',
     marginTop: 20,
     textDecorationLine: 'underline',
   },
