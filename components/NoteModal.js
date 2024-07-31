@@ -211,44 +211,46 @@ const NoteModal = ({
                   style={styles.imageList}
                   contentContainerStyle={styles.imageListContent}
                 />
-              </ScrollView>
-              <View style={styles.likeCommentRow}>
-                <TouchableOpacity style={styles.likeButton} onPress={() => handleLikeButtonPressed(selectedMarker.id)}>
-                  <Text style={styles.likeButtonText}>👍 Like ({selectedMarker?.likes})</Text>
-                </TouchableOpacity>
-                {selectedMarker?.user === userId && (
-                  <TouchableOpacity style={styles.editButton} onPress={() => setEditVisible(true)}>
-                    <Text style={styles.editButtonText}>Edit</Text>
+                <View style={styles.likeCommentRow}>
+                  <TouchableOpacity style={styles.likeButton} onPress={() => handleLikeButtonPressed(selectedMarker.id)}>
+                    <Text style={styles.likeButtonText}>👍 Like ({selectedMarker?.likes})</Text>
                   </TouchableOpacity>
-                )}
-              </View>
-              {selectedMarker?.tags && selectedMarker.tags.length > 0 && (
-                <View style={styles.tagsContainer}>
-                  {selectedMarker.tags.map((tag, index) => (
-                    <View key={index} style={styles.tagBox}>
-                      <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
-                    </View>
-                  ))}
+                  {selectedMarker?.user === userId && (
+                      <TouchableOpacity style={styles.editButton} onPress={() => setEditVisible(true)}>
+                        <Text style={styles.editButtonText}>Edit</Text>
+                      </TouchableOpacity>
+                  )}
                 </View>
-              )}
-              <Text style={styles.commentsHeader}>Comments ({selectedMarker?.comments?.length || 0}):</Text>
-              {selectedMarker?.comments?.length > 0 ? (
-                <FlatList
-                  style={styles.commentList}
-                  data={selectedMarker?.comments}
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => <Text style={styles.comment}>{item}</Text>}
-                />
-              ) : (
-                <Text style={styles.noCommentsText}>There are no comments yet.</Text>
-              )}
+                {selectedMarker?.tags && selectedMarker.tags.length > 0 && (
+                    <View style={styles.tagsContainer}>
+                      {selectedMarker.tags.map((tag, index) => (
+                          <View key={index} style={styles.tagBox}>
+                            <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
+                          </View>
+                      ))}
+                    </View>
+                )}
+                <View>
+                  <Text style={styles.commentsHeader}>Comments ({selectedMarker?.comments?.length || 0}):</Text>
+                  {selectedMarker?.comments?.length > 0 ? (
+                      <FlatList
+                          style={styles.commentList}
+                          data={selectedMarker?.comments}
+                          keyExtractor={(item, index) => index.toString()}
+                          renderItem={({ item }) => <Text style={styles.comment}>{item}</Text>}
+                      />
+                  ) : (
+                      <Text style={styles.noCommentsText}>There are no comments yet.</Text>
+                  )}
+                </View>
+              </ScrollView>
               <View style={styles.commentRow}>
                 <TextInput
-                  style={styles.commentInput}
-                  value={commentText}
-                  onChangeText={setCommentText}
-                  placeholder="Add a comment"
-                  multiline={true}
+                    style={styles.commentInput}
+                    value={commentText}
+                    onChangeText={setCommentText}
+                    placeholder="Add a comment"
+                    multiline={true}
                 />
                 <TouchableOpacity style={styles.addButton} onPress={handleAddComment}>
                   <Text style={styles.addButtonText}>Comment</Text>
