@@ -17,23 +17,27 @@ const Login = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const auth = firebaseauth;
 
-  // Debug mode credentials
-  const debugEmail = '1@1.com';
-  const debugPassword = '111111';
-  const debug = true;
-
   useEffect(() => {
+<<<<<<< Updated upstream
     if (debug) {
       setEmail(debugEmail);
       setPassword(debugPassword);
       console.log('Debug mode enabled');
     }
+=======
+    setEmail('');
+    setPassword('');
+>>>>>>> Stashed changes
   }, []);
 
   const signIn = async () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+<<<<<<< Updated upstream
+=======
+      navigation.navigate('StickyNotesMap'); 
+>>>>>>> Stashed changes
     } catch (error) {
       console.log(error);
       alert('Invalid email or password');
@@ -42,16 +46,16 @@ const Login = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={styles.container}>
-      <Text style={styles.title}>Thoughtscape</Text>
-      <View style={styles.inputContainer}>
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <View style={styles.innerContainer}>
+        <Text style={styles.title}>Thoughtscape</Text>
         <TextInput
           style={styles.input}
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
-          placeholderTextColor="#999"
+          placeholderTextColor="#aaa"
         />
         <TextInput
           style={styles.input}
@@ -59,24 +63,19 @@ const Login = ({ navigation }) => {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          placeholderTextColor="#999"
+          placeholderTextColor="#aaa"
         />
-      </View>
-      {loading ? (
-        <ActivityIndicator size="large" color="#000" />
-      ) : (
-        <>
+        {loading ? (
+          <ActivityIndicator size="large" color="#FFA000" />
+        ) : (
           <TouchableOpacity style={styles.button} onPress={signIn}>
             <Text style={styles.buttonText}>Sign In</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.buttonSecondary}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.buttonSecondaryText}>Create Account</Text>
-          </TouchableOpacity>
-        </>
-      )}
+        )}
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.registerText}>Create Account</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 };
@@ -88,55 +87,50 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F9F8F4', // Light background color
+  },
+  innerContainer: {
+    width: '80%',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 5,
   },
   title: {
-    fontSize: 30,
-    color: '#333',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    width: '100%',
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1B1B1B', // Dark text color
     marginBottom: 20,
   },
   input: {
     width: '100%',
     height: 50,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    marginVertical: 10,
-    color: '#333',
-    borderColor: '#ddd',
+    borderColor: '#E0E0E0', // Light border color
     borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    marginVertical: 10,
+    backgroundColor: '#FFF',
+    color: '#333',
   },
   button: {
-    backgroundColor: '#1e90ff',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
     width: '100%',
+    height: 50,
+    backgroundColor: '#FFA000', // Button color
+    borderRadius: 8,
+    justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: '#FFF',
     fontSize: 18,
+    fontWeight: 'bold',
   },
-  buttonSecondary: {
-    borderColor: '#1e90ff',
-    borderWidth: 1,
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    width: '100%',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  buttonSecondaryText: {
-    color: '#1e90ff',
-    fontSize: 18,
+  registerText: {
+    color: '#FF6F61',
+    marginTop: 20,
+    textDecorationLine: 'underline',
   },
 });
