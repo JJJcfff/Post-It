@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, Keyboard } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import MapView from 'react-native-maps';
 import Toast from 'react-native-toast-message';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
@@ -559,6 +559,7 @@ const StickyNotesMap = ({ navigation }) => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <SearchBar searchText={searchText} handleSearch={handleSearch}/>
         {loading ? (
@@ -628,6 +629,7 @@ const StickyNotesMap = ({ navigation }) => {
         />
         <Toast style={styles.toast}/>
       </View>
+      </TouchableWithoutFeedback>
     </GestureHandlerRootView>
   );
 };
