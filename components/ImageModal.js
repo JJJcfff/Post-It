@@ -1,13 +1,50 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, Image, TextInput, StyleSheet, FlatList, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  Image,
+  TextInput,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Alert
+} from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
-import ColorPicker, {Swatches, Preview, HueSlider, HSLSaturationSlider } from 'reanimated-color-picker';
+import ColorPicker, {Swatches, Preview, HueSlider, HSLSaturationSlider} from 'reanimated-color-picker';
 
 const ImageModal = ({
-  imageModalVisible, setImageModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
-  handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
-  handleDeleteTag, searchTags, suggestions, setSuggestions, imageEditVisible, setImageEditVisible, color, setColor, textColor, setTextColor
-}) => {
+                      imageModalVisible,
+                      setImageModalVisible,
+                      selectedMarker,
+                      noteText,
+                      setNoteText,
+                      tags,
+                      setTags,
+                      tagText,
+                      setTagText,
+                      handleSave,
+                      handleDelete,
+                      handleLike,
+                      handleAddComment,
+                      commentText,
+                      setCommentText,
+                      userId,
+                      handleAddTag,
+                      handleDeleteTag,
+                      searchTags,
+                      suggestions,
+                      setSuggestions,
+                      imageEditVisible,
+                      setImageEditVisible,
+                      color,
+                      setColor,
+                      textColor,
+                      setTextColor
+                    }) => {
   useEffect(() => {
     if (!color) {
       setColor('#FFE900'); // default to yellow if color is not set
@@ -28,7 +65,7 @@ const ImageModal = ({
     setTextColor(selectedColor);
     console.log("Text Color selected: ", selectedColor);
   };
-  
+
   const confirmDelete = () => {
     Alert.alert(
       "Confirm Delete",
@@ -46,8 +83,6 @@ const ImageModal = ({
       ]
     );
   };
-
-
 
 
   return (
@@ -100,7 +135,7 @@ const ImageModal = ({
                   style={styles.commentList}
                   data={selectedMarker?.comments}
                   keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => <Text style={styles.comment}>{item}</Text>}
+                  renderItem={({item}) => <Text style={styles.comment}>{item}</Text>}
                 />
               ) : (
                 <Text style={styles.noCommentsText}>There are no comments yet.</Text>
@@ -122,7 +157,7 @@ const ImageModal = ({
             <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
               <Text style={styles.modalText}>Edit Note</Text>
               <TextInput
-                style={[styles.input, styles.borderedInput, { backgroundColor: color, color: textColor }]}
+                style={[styles.input, styles.borderedInput, {backgroundColor: color, color: textColor}]}
                 value={noteText}
                 onChangeText={setNoteText}
                 placeholder="Edit your note"
@@ -152,7 +187,7 @@ const ImageModal = ({
                   placeholderTextColor={'#666'}
                   flatListProps={{
                     keyExtractor: (_, idx) => idx.toString(),
-                    renderItem: ({ item }) => (
+                    renderItem: ({item}) => (
                       <TouchableOpacity onPress={() => {
                         setTagText(item);
                         setSuggestions([]);
@@ -174,17 +209,17 @@ const ImageModal = ({
                   sliderThickness={20}
                   thumbSize={30}
                   onComplete={onSelectColor}
-                  style={{ width: '95%' }}
+                  style={{width: '95%'}}
                 >
-                  <Preview 
+                  <Preview
                     hideInitialColor={true}
-                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
+                    style={{width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
                   />
-                  <HueSlider />
-                  <HSLSaturationSlider style={{ marginTop: 20 }} />
-                  <Swatches 
+                  <HueSlider/>
+                  <HSLSaturationSlider style={{marginTop: 20}}/>
+                  <Swatches
                     colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']} // predefined colors
-                    style={{ marginTop: 20 }}
+                    style={{marginTop: 20}}
                   />
                 </ColorPicker>
                 <Text style={styles.colorPickerLabel}>Text Color:</Text>
@@ -194,11 +229,11 @@ const ImageModal = ({
                   sliderThickness={20}
                   thumbSize={30}
                   onComplete={onSelectTextColor}
-                  style={{ width: '95%'}}
+                  style={{width: '95%'}}
                 >
-                  <Preview 
+                  <Preview
                     hideInitialColor={true}
-                    style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
+                    style={{width: '60%', height: 30, marginBottom: 20, alignSelf: 'center'}}
                   />
                   {/* <HueSlider />
                   <HSLSaturationSlider style={{ marginTop: 20 }} /> */}

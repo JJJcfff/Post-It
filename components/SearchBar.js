@@ -1,7 +1,7 @@
 import React from 'react';
-import { TextInput, StyleSheet } from 'react-native';
+import {TextInput, StyleSheet} from 'react-native';
 
-const SearchBar = ({ searchText, handleSearch }) => {
+const SearchBar = ({searchText, handleSearch}) => {
   return (
     <TextInput
       style={styles.searchBar}
