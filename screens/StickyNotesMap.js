@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, Keyboard } from 'react-native';
 import MapView from 'react-native-maps';
 import Toast from 'react-native-toast-message';
-import { getFirestore, collection, addDoc, getDocs, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
 import { firebaseapp, firebaseauth } from '../FirebaseConfig';
 import { ref, uploadBytes, getDownloadURL, getStorage, deleteObject } from 'firebase/storage';
 import customMapStyle from '../assets/customMapStyle.json';
