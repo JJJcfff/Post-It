@@ -579,6 +579,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     padding: 10,
+    marginBottom: 40,
   },
   button: {
     backgroundColor: '#4CAF50',

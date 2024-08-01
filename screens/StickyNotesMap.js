@@ -180,6 +180,7 @@ const StickyNotesMap = ({ navigation }) => {
       const tagDoc = doc(firestore, 'tags', tag);
       await setDoc(tagDoc, {
         tag: tag,
+        tag_lower: tag.toLowerCase(),
         createdAt: serverTimestamp(),
         accessCount: 1,
       });
@@ -194,12 +195,13 @@ const StickyNotesMap = ({ navigation }) => {
       setSuggestions([]);
       return;
     }
+    tag = tag.toLowerCase().trim();
     try {
       const tagsCollection = collection(firestore, 'tags');
       const q = query(
         tagsCollection,
-        where('tag', '>=', tag.toLowerCase()),
-        where('tag', '<=', tag.toLowerCase() + '\uf8ff'),
+        where('tag_lower', '>=', tag),
+        where('tag_lower', '<=', tag + '\uf8ff'),
         orderBy('accessCount', 'desc'),
         limit(15)
       );
