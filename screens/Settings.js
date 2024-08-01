@@ -32,7 +32,7 @@ const Settings = ({navigation}) => {
     const auth = getAuth();
     const user = auth.currentUser;
 
-    const defaultAvatar = require('../assets/default-avatar.png');
+    const defaultAvatarUri = 'https://firebasestorage.googleapis.com/v0/b/post-it-1d453.appspot.com/o/profilePictures%2FjUEWlc8B6nRi6C1yXp2FzZvNTwQ2%2FprofilePicture.jpg?alt=media&token=027763e8-3797-440d-8773-94471d153e62'
 
     const [userId, setUserId] = useState('');
     const [displayName, setDisplayName] = useState('');
@@ -50,7 +50,7 @@ const Settings = ({navigation}) => {
             if (user) {
                 setUserId(user.uid);
                 setDisplayName(user.displayName || '');
-                setPhotoURL(user.photoURL || defaultAvatar.uri);
+                setPhotoURL((user.photoURL === '') ? defaultAvatarUri : user.photoURL);
                 await fetchUserData(user.uid);
             }
         });
