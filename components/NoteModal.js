@@ -8,6 +8,9 @@ import { Image as CachedImage } from 'react-native-expo-image-cache';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import RNModal from 'react-native-modal';
+import {getAuth} from "firebase/auth";
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 
 const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
@@ -39,6 +42,9 @@ const NoteModal = ({
       setImageUris(selectedMarker.imageUris);
     }
   }, [selectedMarker]);
+
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   const onSelectColor = (color) => {
     const selectedColor = color.hex || color;
@@ -236,6 +242,20 @@ const NoteModal = ({
                       ))}
                     </View>
                 )}
+                <View style={styles.userProfileContainer}>
+                  <TouchableOpacity onPress={() => {console.log('UserProfile Pressed')}} style={styles.profileInfo}>
+                  <CachedImage uri={user.photoURL} style={styles.avatar}/>
+                  <Text style={styles.displayName}>{user.displayName}</Text>
+                  </TouchableOpacity>
+                    <TouchableOpacity onPress={() => console.log('Message Pressed')} style={styles.modalProfileActionButton}>
+                      <Ionicons name="chatbubble" size={20} color="#333" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => console.log('Add Friend Pressed')} style={styles.modalProfileActionButton}>
+                      <Ionicons name="person-add" size={20} color="#333" />
+                    </TouchableOpacity>
+                </View>
+
+
                 <View>
                   <Text style={styles.commentsHeader}>Comments ({selectedMarker?.comments?.length || 0}):</Text>
                   {selectedMarker?.comments?.length > 0 ? (
@@ -715,6 +735,38 @@ const styles = StyleSheet.create({
     margin: 0,
     justifyContent: 'center',
   },
+  profileInfo: {
+    flex: 1,
+    //side by side
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    margin: 15,
+  },
+  displayName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  userProfileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    marginTop: 10,
+    borderRadius: 10,
+  },
+  modalProfileActionButton: {
+    padding: 10,
+    marginHorizontal: 10,
+  },
+
 });
 
 export default NoteModal;
