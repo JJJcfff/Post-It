@@ -241,6 +241,7 @@ const StickyNotesMap = ({ navigation }) => {
         setFilteredMarkers([...markers, newMarker]);
       });
 
+
     } catch (error) {
       console.error('Error adding document: ', error);
       Toast.show({

@@ -22,6 +22,8 @@ import {Image as CachedImage} from 'react-native-expo-image-cache';
 import {MaterialIcons} from '@expo/vector-icons';
 import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import defaultAvatar from "../assets/default-avatar.png";
+import ImageViewer from 'react-native-image-zoom-viewer';
+import RNModal from 'react-native-modal';
 
 const firestore = getFirestore(firebaseapp);
 const storage = getStorage(firebaseapp);
@@ -39,18 +41,29 @@ const Settings = ({navigation}) => {
     const [loading, setLoading] = useState(false);
     const [editLoading, setEditLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
+    const [notesCount, setNotesCount] = useState(0);
+    const [likesCount, setLikesCount] = useState(0);
+    const [friendsCount, setFriendsCount] = useState(0);
 
     useEffect(() => {
-        const unsubscribe = firebaseauth.onAuthStateChanged(user => {
+        const unsubscribe = firebaseauth.onAuthStateChanged(async user => {
             if (user) {
                 setUserId(user.uid);
                 setDisplayName(user.displayName || '');
                 setPhotoURL(user.photoURL || defaultAvatar.uri);
+                await fetchUserData(user.uid);
             }
         });
 
         return () => unsubscribe();
     }, []);
+
+    const fetchUserData = async (userId) => {
+        //TODO: Fetch user data from Firestore
+        setNotesCount(0);
+        setLikesCount(0);
+        setFriendsCount(0);
+    };
 
     const handleLogout = async () => {
         try {
@@ -62,15 +75,72 @@ const Settings = ({navigation}) => {
     };
 
     const uploadImage = async (imageUri) => {
-        // Existing image upload logic
+        try {
+            if (!imageUri.startsWith('file://')) {
+                throw new Error('Invalid image URI');
+            }
+            const response = await fetch(imageUri);
+            if (!response.ok) {
+                throw new Error('Failed to fetch image, status: ' + response.status);
+            }
+            const blob = await response.blob();
+            const storageRef = ref(storage, `profilePictures/${userId}/profilePicture.jpg`);
+            const snapshot = await uploadBytes(storageRef, blob);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            return downloadURL;
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            return null;
+        }
     };
 
     const pickImage = async () => {
-        // Existing image pick logic
+        try {
+            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!permissionResult.granted) {
+                alert("Permission to access gallery is required!");
+                return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 1,
+                allowsMultipleSelection: false,
+            });
+
+            if (!result.canceled) {
+                setEditLoading(true);
+                const manipResult = await manipulateAsync(
+                  result.assets[0].uri,
+                  [{resize: {width: 500}}],
+                  {compress: 0.7, format: SaveFormat.JPEG}
+                );
+                const downloadUri = await uploadImage(manipResult.uri);
+                setNewPhotoURL(downloadUri);
+                setEditLoading(false);
+            } else {
+                setEditLoading(false);
+            }
+        } catch (error) {
+            console.error('Error picking image: ', error);
+        }
     };
 
     const saveProfile = async () => {
-        // Existing save profile logic
+        setLoading(true);
+        try {
+            await updateProfile(user, {displayName, photoURL: newPhotoURL || photoURL}).then(() => {
+                setPhotoURL(newPhotoURL || photoURL);
+                console.log('Profile updated successfully');
+            }).catch((error) => {
+                console.error('Error updating profile:', error);
+            });
+        } catch (error) {
+            console.error('Error updating profile:', error);
+        }
+        setLoading(false);
+        setEditMode(false);
     };
 
     const handleEdit = () => {
@@ -78,63 +148,61 @@ const Settings = ({navigation}) => {
         setEditMode(true)
     }
 
-    const viewFullImage = () => {
-        console.log('TODO: View full image');
-    }
-
     return (
-        <View style={styles.container}>
-            <ScrollView>
-                <View style={styles.profileCard}>
-                    <TouchableOpacity onPress={viewFullImage}>
-                        <Image source={{uri: photoURL}} style={styles.avatar}/>
-                    </TouchableOpacity>
-                    <View style={styles.profileInfo}>
-                        <Text style={styles.displayName}>{displayName}</Text>
-                    </View>
-                    <TouchableOpacity style={styles.editIcon} onPress={handleEdit}>
-                        <MaterialIcons name="edit" size={16} color="black"/>
-                    </TouchableOpacity>
-                </View>
-                <Button title="Logout" onPress={handleLogout}/>
+      <View style={styles.container}>
+          <ScrollView>
+              <View style={styles.profileCard}>
+                  <TouchableOpacity onPress={handleEdit} style={styles.profileInfo}>
+                      <CachedImage uri={photoURL} style={styles.avatar}/>
+                      <Text style={styles.displayName}>{displayName}</Text>
+                  </TouchableOpacity>
 
-                {loading && <ActivityIndicator size="large" color="#0000ff"/>}
-            </ScrollView>
+                  <View style={styles.statsInfo}>
+                      <Text style={styles.statsText}>Notes: {notesCount}</Text>
+                      <Text style={styles.statsText}>Likes: {likesCount}</Text>
+                      <Text style={styles.statsText}>Friends: {friendsCount}</Text>
+                  </View>
 
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={editMode}
-                onRequestClose={() => setEditMode(false)}
-            >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={styles.modalContainer}
-                >
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity onPress={pickImage}>
-                            <Image source={newPhotoURL === '' ? {uri: photoURL} : {uri: newPhotoURL}}
-                                   style={styles.modalAvatar}/>
-                        </TouchableOpacity>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Display Name"
-                            value={displayName}
-                            onChangeText={setDisplayName}
-                            autoCapitalize="none"
-                            placeholderTextColor="#999"
-                        />
-                        {editLoading ? <ActivityIndicator size="large" color="#0000ff"/> :
-                            <Button title="Save" onPress={saveProfile}/>
-                        }
-                        <Button title="Cancel" onPress={() => {
-                            setEditMode(false);
-                            setNewPhotoURL(photoURL)
-                        }}/>
-                    </View>
-                </KeyboardAvoidingView>
-            </Modal>
-        </View>
+              </View>
+              <Button title="Logout" onPress={handleLogout}/>
+
+              {loading && <ActivityIndicator size="large" color="#0000ff"/>}
+          </ScrollView>
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={editMode}
+            onRequestClose={() => setEditMode(false)}
+          >
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.modalContainer}
+              >
+                  <View style={styles.modalContent}>
+                      <TouchableOpacity onPress={pickImage}>
+                          <Image source={newPhotoURL === '' ? {uri: photoURL} : {uri: newPhotoURL}}
+                                 style={styles.modalAvatar}/>
+                      </TouchableOpacity>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="Display Name"
+                        value={displayName}
+                        onChangeText={setDisplayName}
+                        autoCapitalize="none"
+                        placeholderTextColor="#999"
+                      />
+                      {editLoading ? <ActivityIndicator size="large" color="#0000ff"/> :
+                        <Button title="Save" onPress={saveProfile}/>
+                      }
+                      <Button title="Cancel" onPress={() => {
+                          setEditMode(false);
+                          setNewPhotoURL(photoURL)
+                      }}/>
+                  </View>
+              </KeyboardAvoidingView>
+          </Modal>
+      </View>
     );
 };
 
@@ -165,13 +233,22 @@ const styles = StyleSheet.create({
     },
     profileInfo: {
         flex: 1,
+        alignItems: 'center',
     },
     displayName: {
         fontSize: 18,
         fontWeight: 'bold',
+        marginBottom: 10,
     },
-    editIcon: {
-        padding: 10,
+    statsText: {
+        fontSize: 16,
+        color: '#555',
+        marginVertical: 10,
+    },
+    statsInfo: {
+        flex: 1,
+        alignItems: 'center',
+
     },
     input: {
         borderColor: '#ccc',
@@ -203,5 +280,6 @@ const styles = StyleSheet.create({
         borderColor: '#999',
     },
 });
+
 
 export default Settings;
