@@ -54,8 +54,12 @@ const Register = ({navigation}) => {
             console.log(error);
             if (error.code === 'auth/email-already-in-use') {
                 alert('Email already in use');
+            } else if (error.code === 'auth/invalid-email') {
+                alert('Invalid email');
+            } else if (error.code === 'auth/weak-password') {
+                alert('Password is too weak');
             } else {
-                alert('Invalid email or password');
+                alert('An error occurred. Please try again later');
             }
         }
         setLoading(false);
