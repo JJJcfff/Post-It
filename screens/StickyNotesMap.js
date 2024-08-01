@@ -21,6 +21,7 @@ const StickyNotesMap = ({ navigation }) => {
   const [selectedMarker, setSelectedMarker] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
+  const [isNewMarker, setIsNewMarker] = useState(false);
   const [likeButtonPressable, setLikeButtonPressable] = useState(true);
 
   const [noteText, setNoteText] = useState('');
@@ -88,50 +89,6 @@ const StickyNotesMap = ({ navigation }) => {
 
     return () => unsubscribe();
   }, []);
-
-  const addMarker = async (e) => {
-    try {
-      const newMarkerRef = doc(collection(firestore, 'stickyNoteMarkers'));
-
-      const currentTimestamp = serverTimestamp();
-      const newMarker = {
-        id: newMarkerRef.id,
-        user: userId,
-        coordinate: e.nativeEvent.coordinate,
-        text: 'New Sticky Note',
-        tags: [],
-        likes: 0,
-        comments: [],
-        createdAt: currentTimestamp,
-        lastUpdatedAt: currentTimestamp,
-        color: '#FFEB3B',
-        textColor: '#000000',
-        imageUris: [],
-      }
-
-      setSelectedMarker(newMarker);
-      setNoteText('');
-      setTagText('');
-      setTags([]);
-      setImageUris([]);
-
-      setModalVisible(true);
-      setEditVisible(true);
-
-      setDoc(newMarkerRef, newMarker).then(() => {
-        setMarkers([...markers, newMarker]);
-        setFilteredMarkers([...markers, newMarker]);
-      });
-
-    } catch (error) {
-      console.error('Error adding document: ', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to add marker',
-      });
-    }
-  };
 
   const updateMarker = async (updatedMarker) => {
     try {
@@ -256,35 +213,63 @@ const StickyNotesMap = ({ navigation }) => {
     }
   };
 
+  const addMarker = async () => {
+    try {
+      const newMarkerRef = doc(collection(firestore, 'stickyNoteMarkers'));
+
+      const currentTimestamp = serverTimestamp();
+      const newMarker = {
+        id: newMarkerRef.id,
+        user: userId,
+
+        coordinate: newCoordinate,
+        text: noteText,
+        tags: tags,
+        color: color,
+        textColor: textColor,
+        imageUris: imageUris,
+
+        likes: 0,
+        comments: [],
+
+        createdAt: currentTimestamp,
+        lastUpdatedAt: currentTimestamp,
+      }
+
+      setDoc(newMarkerRef, newMarker).then(() => {
+        setMarkers([...markers, newMarker]);
+        setFilteredMarkers([...markers, newMarker]);
+      });
+
+    } catch (error) {
+      console.error('Error adding document: ', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add marker',
+      });
+    }
+  };
+
   const handleLongPress = (e) => {
     setNewCoordinate(e.nativeEvent.coordinate);
-    addMarker(e);
+    setIsNewMarker(true);
+    setNoteText('');
+    setTagText('');
+    setTags([]);
+    setImageUris([]);
+
+    setModalVisible(true);
+    setEditVisible(true);
   };
 
   const handleMarkerPress = (marker) => {
     setSelectedMarker(marker);
-    if (marker.text) {
-      setNoteText(marker.text);
-    }
-    if (marker.tags) {
-      setTags(marker.tags);
-    }
-    if (marker.color) {
-      setColor(marker.color);
-    } else {
-      setColor('#FFEB3B');
-    }
-    if (marker.textColor) {
-      setTextColor(marker.textColor);
-    } else {
-      setTextColor('#000000');
-    }
-    if (marker.imageUris) {
-      setImageUris(marker.imageUris);
-    } else {
-      setImageUris([]);
-    }
-
+    setNoteText(marker.text??'');
+    setTags(marker.tags??[]);
+    setColor(marker.color??'#FFEB3B');
+    setTextColor(marker.textColor??'#000000');
+    setImageUris(marker.imageUris??[]);
     setEditVisible(false);
     setModalVisible(true);
   };
@@ -296,6 +281,16 @@ const StickyNotesMap = ({ navigation }) => {
         text1: 'Error',
         text2: 'Note cannot be empty',
       });
+      return;
+    }
+
+    if (isNewMarker) {
+      addMarker();
+      setModalVisible(false);
+      setIsNewMarker(false);
+      setNoteText('');
+      setTags([]);
+      setImageUris([]);
       return;
     }
 
@@ -625,6 +620,8 @@ const StickyNotesMap = ({ navigation }) => {
           style={styles.modal}
           setLikeButtonPressable={setLikeButtonPressable}
           likeButtonPressable={likeButtonPressable}
+          isNewMarker={isNewMarker}
+          setIsNewMarker={setIsNewMarker}
         />
         <Toast style={styles.toast}/>
       </View>

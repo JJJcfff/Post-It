@@ -13,7 +13,7 @@ const NoteModal = ({
   modalVisible, setModalVisible, selectedMarker, noteText, setNoteText, tags, setTags, tagText, setTagText,
   handleSave, handleDelete, handleLike, handleAddComment, commentText, setCommentText, userId, handleAddTag,
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor,
-  imageUris, setImageUris, uploadImage, removeImage,likeButtonPressable, setLikeButtonPressable
+  imageUris, setImageUris, uploadImage, removeImage,likeButtonPressable, setLikeButtonPressable, isNewMarker, setIsNewMarker,
 }) => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
@@ -191,10 +191,16 @@ const NoteModal = ({
         style={styles.centeredView}
       >
         <View style={[styles.modalView, !editVisible && styles.modalViewLarge]}>
-          <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => {
+            setModalVisible(false);
+            setEditVisible(false);
+            if (isNewMarker) {
+              setIsNewMarker(false);
+            }
+          }}>
             <Text style={styles.closeButtonText}>✕</Text>
           </TouchableOpacity>
-          {editVisible && (
+          {(editVisible && !isNewMarker) && (
             <TouchableOpacity style={styles.backButton} onPress={() => setEditVisible(false)}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
@@ -260,7 +266,9 @@ const NoteModal = ({
           ) : (
             <View style= {{width:'100%'}}>
               <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.modalText}>Edit Note</Text>
+                <Text style={styles.modalText}>
+                  {isNewMarker ? 'Create Note' : 'Edit Note'}
+                </Text>
                 <TextInput
                   style={[styles.input, styles.borderedInput, { backgroundColor: color, color: textColor }]}
                   value={noteText}
@@ -288,16 +296,6 @@ const NoteModal = ({
                     <Text style={styles.addImageButtonText}>Add Image</Text>
                   </TouchableOpacity>
                 </>
-                <View style={styles.tagsContainer}>
-                  {tags.map((tag, index) => (
-                    <View key={index} style={styles.tagBox}>
-                      <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
-                      <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
-                        <Text style={styles.deleteTagText}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
                 <View style={styles.tagInputRow}>
                   <Autocomplete
                     style={styles.tagInput}
@@ -325,6 +323,16 @@ const NoteModal = ({
                   <TouchableOpacity style={styles.addTagButton} onPress={handleAddTag}>
                     <Text style={styles.addTagButtonText}>Add Tag</Text>
                   </TouchableOpacity>
+                </View>
+                <View style={styles.tagsContainer}>
+                  {tags.map((tag, index) => (
+                    <View key={index} style={styles.tagBox}>
+                      <Text style={styles.tagText} numberOfLines={2} ellipsizeMode="tail">{tag}</Text>
+                      <TouchableOpacity onPress={() => handleDeleteTag(tag)}>
+                        <Text style={styles.deleteTagText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
                 </View>
                 <View style={styles.colorPickerContainer}>
                   <TouchableOpacity onPress={() => setShowBackgroundColorPicker(!showBackgroundColorPicker)}>
@@ -379,16 +387,15 @@ const NoteModal = ({
                     )}
                   </ColorPicker>
                 </View>
-
+                <View style={[styles.buttonRow]}>
+                  <TouchableOpacity style={[styles.button, { flex: 1 }]} onPress={handleSave}>
+                    <Text style={styles.buttonText}>Save</Text>
+                  </TouchableOpacity>
+                  {!isNewMarker && <TouchableOpacity style={[styles.button, styles.deleteButton, {flex:1}]} onPress={confirmDelete}>
+                    <Text style={styles.buttonText}>Delete</Text>
+                  </TouchableOpacity>}
+                </View>
               </ScrollView>
-              <View style={[styles.buttonRow]}>
-                <TouchableOpacity style={styles.button} onPress={handleSave}>
-                  <Text style={styles.buttonText}>Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={confirmDelete}>
-                  <Text style={styles.buttonText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           )}
         </View>
@@ -558,7 +565,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     elevation: 2,
-    width: '48%',
+    marginHorizontal: 10,
   },
   deleteButton: {
     backgroundColor: '#f44336',
@@ -603,7 +610,7 @@ const styles = StyleSheet.create({
   tagInputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginVertical: 10,
     width: '100%',
     flex: 1,
     zIndex: 1,
@@ -620,12 +627,10 @@ const styles = StyleSheet.create({
   },
   tagInput: {
     height: 40,
-    borderColor: '#ddd',
-    borderWidth: 0,
-    borderRadius: 10,
     paddingHorizontal: 10,
     flex: 1,
     zIndex: 1,
+    borderWidth:0,
   },
   autocompleteContainer: {
     flex: 1,
