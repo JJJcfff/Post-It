@@ -11,7 +11,7 @@ import {
     Modal,
     Image,
     KeyboardAvoidingView,
-    Platform
+    Platform, Switch
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {getAuth, updateProfile} from 'firebase/auth';
@@ -24,6 +24,9 @@ import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
 import defaultAvatar from "../assets/default-avatar.png";
 import ImageViewer from 'react-native-image-zoom-viewer';
 import RNModal from 'react-native-modal';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleUserLocation, toggleFAB } from '../redux/actions';
+
 
 const firestore = getFirestore(firebaseapp);
 const storage = getStorage(firebaseapp);
@@ -31,6 +34,7 @@ const storage = getStorage(firebaseapp);
 const Settings = ({navigation}) => {
     const auth = getAuth();
     const user = auth.currentUser;
+    const dispatch = useDispatch();
 
     const defaultAvatarUri = 'https://firebasestorage.googleapis.com/v0/b/post-it-1d453.appspot.com/o/profilePictures%2FjUEWlc8B6nRi6C1yXp2FzZvNTwQ2%2FprofilePicture.jpg?alt=media&token=027763e8-3797-440d-8773-94471d153e62'
 
@@ -45,6 +49,11 @@ const Settings = ({navigation}) => {
     const [likesCount, setLikesCount] = useState(0);
     const [friendsCount, setFriendsCount] = useState(0);
 
+
+    //states for sticky notes map screen
+    const showUserLocation = useSelector(state => state.showUserLocation);
+    const showFAB = useSelector(state => state.showFAB);
+
     useEffect(() => {
         const unsubscribe = firebaseauth.onAuthStateChanged(async user => {
             if (user) {
@@ -57,6 +66,7 @@ const Settings = ({navigation}) => {
 
         return () => unsubscribe();
     }, []);
+
 
     const fetchUserData = async (userId) => {
         //TODO: Fetch user data from Firestore
@@ -162,10 +172,26 @@ const Settings = ({navigation}) => {
                       <Text style={styles.statsText}>Likes: {likesCount}</Text>
                       <Text style={styles.statsText}>Friends: {friendsCount}</Text>
                   </View>
-
+              </View>
+              <View style={styles.setting}>
+                  <Text>Show User Location:</Text>
+                  <Switch
+                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                    thumbColor={"#f4f3f4"}
+                    value={showUserLocation}
+                    onValueChange={() => dispatch(toggleUserLocation())}
+                  />
+              </View>
+              <View style={styles.setting}>
+                  <Text>Show FAB:</Text>
+                  <Switch
+                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                    thumbColor={"#f4f3f4"}
+                    value={showFAB}
+                    onValueChange={() => dispatch(toggleFAB())}
+                  />
               </View>
               <Button title="Logout" onPress={handleLogout}/>
-
               {loading && <ActivityIndicator size="large" color="#0000ff"/>}
           </ScrollView>
 
@@ -210,6 +236,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 5,
+    },
+    setting: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
     },
     profileCard: {
         flexDirection: 'row',

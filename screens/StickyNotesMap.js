@@ -1,20 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {Keyboard, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Image} from 'react-native';
 import MapView from 'react-native-maps';
 import Toast from 'react-native-toast-message';
-import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, setDoc, deleteDoc, serverTimestamp, doc, onSnapshot, query, where, orderBy, limit } from 'firebase/firestore';
-import { firebaseapp, firebaseauth } from '../FirebaseConfig';
-import { ref, uploadBytes, getDownloadURL, getStorage, deleteObject } from 'firebase/storage';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where
+} from 'firebase/firestore';
+import {firebaseapp, firebaseauth} from '../FirebaseConfig';
+import {deleteObject, getDownloadURL, getStorage, ref, uploadBytes} from 'firebase/storage';
 import customMapStyle from '../assets/customMapStyle.json';
 import MarkerComponent from '../components/MarkerComponent';
 import NoteModal from '../components/NoteModal';
 import SearchBar from '../components/SearchBar';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import * as Location from 'expo-location';
+import locationIcon from '../assets/location-icon.png';
+import {useSelector} from "react-redux";
+
 
 const firestore = getFirestore(firebaseapp);
 const storage = getStorage(firebaseapp);
 
-const StickyNotesMap = ({ navigation }) => {
+const StickyNotesMap = () => {
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
   const [markers, setMarkers] = useState([]);
@@ -38,6 +57,17 @@ const StickyNotesMap = ({ navigation }) => {
   const [color, setColor] = useState('');
   const [textColor, setTextColor] = useState('');
 
+  const [hasPermission, setHasPermission] = useState(null);
+  const [currentLocation, setCurrentLocation] = useState(null);
+  const showUserLocation = useSelector(state => state.showUserLocation);
+  const showFAB = useSelector(state => state.showFAB);
+  const [region, setRegion] = useState({
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+
   useEffect(() => {
     const setAuthUser = () => {
       const user = firebaseauth.currentUser;
@@ -54,6 +84,25 @@ const StickyNotesMap = ({ navigation }) => {
     setAuthUser();
 
     return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      setHasPermission(status === 'granted');
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.00422,
+        longitudeDelta: 0.00421,
+      });
+    })();
   }, []);
 
   const getAllMarkers = async () => {
@@ -557,6 +606,20 @@ const StickyNotesMap = ({ navigation }) => {
     setTags(tags.filter(tag => tag !== tagToDelete));
   };
 
+  const handleLocatePress = () => {
+    if (hasPermission) {
+      (async () => {
+        let location = await Location.getCurrentPositionAsync({});
+        setRegion({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          latitudeDelta: 0.00422,
+          longitudeDelta: 0.00421,
+        });
+      })();
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -567,27 +630,36 @@ const StickyNotesMap = ({ navigation }) => {
             <Text style={styles.loadingText}>Loading...</Text>
           </View>
         ) : (
-          <MapView
-            style={styles.map}
-            customMapStyle={customMapStyle}
-            onLongPress={handleLongPress}
-            showsBuildings={false}
-            showsIndoors={false}
-            cameraZoomRange={{min: 0, max: 20}}
-            minZoomLevel={0}
-            maxZoomLevel={20}
-          >
-            {filteredMarkers.map((marker) => (
-              <MarkerComponent
-                key={marker.id}
-                marker={marker}
-                onPress={handleMarkerPress}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                userId={userId}
-              />
-            ))}
-          </MapView>
+          <View style={styles.container}>
+            <MapView
+              style={styles.map}
+              customMapStyle={customMapStyle}
+              onLongPress={handleLongPress}
+              showsBuildings={false}
+              showsIndoors={false}
+              cameraZoomRange={{min: 0, max: 20}}
+              minZoomLevel={0}
+              maxZoomLevel={20}
+              region={region}
+              showsUserLocation={showUserLocation}
+              followsUserLocation={showUserLocation}
+            >
+              {filteredMarkers.map((marker) => (
+                <MarkerComponent
+                  key={marker.id}
+                  marker={marker}
+                  onPress={handleMarkerPress}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  userId={userId}
+                />
+              ))}
+            </MapView>
+            {showFAB && (<TouchableOpacity style={styles.fab} onPress={handleLocatePress}>
+              <Image source={locationIcon} style={styles.fabIcon} />
+            </TouchableOpacity>)}
+
+          </View>
         )}
         <NoteModal
           modalVisible={modalVisible}
@@ -647,6 +719,22 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 28,
+    elevation: 8
+  },
+  fabIcon: {
+    width: 24,
+    height: 24
   },
   loadingContainer: {
     flex: 1,

@@ -1,0 +1,2 @@
+export const TOGGLE_USER_LOCATION = 'TOGGLE_USER_LOCATION';
+export const TOGGLE_FAB = 'TOGGLE_FAB';

@@ -4,7 +4,7 @@ import {View, Text, TextInput, Button, FlatList, StyleSheet} from 'react-native'
 import {firebaseauth, firestore} from '../FirebaseConfig';
 
 const Chat = ({navigation}) => {
-    //nothing for now
+    //nothing for nowwa
     return (
         <View style={styles.container}>
             <Text>Chat Screen</Text>
