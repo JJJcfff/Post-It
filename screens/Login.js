@@ -64,8 +64,8 @@ const Login = ({navigation}) => {
                         <Text style={styles.buttonText}>Sign In</Text>
                     </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                    <Text style={styles.registerText}>Create Account</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('Landing')}>
+                    <Text style={styles.backButtonText}>Back</Text>
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
-    registerText: {
+    backButtonText: {
         color: '#FF6B6B',
         marginTop: 20,
         textDecorationLine: 'underline',
