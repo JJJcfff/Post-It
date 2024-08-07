@@ -242,19 +242,19 @@ const NoteModal = ({
                       ))}
                     </View>
                 )}
-                <View style={styles.userProfileContainer}>
+                {(selectedMarker?.user === userId) ? (<View style={{alignItems:'center', flex:1, marginVertical:10}}><Text>Posted By You</Text></View>)
+                  : (<View style={styles.userProfileContainer}>
                   <TouchableOpacity onPress={() => {console.log('UserProfile Pressed')}} style={styles.profileInfo}>
-                  <CachedImage uri={user.photoURL} style={styles.avatar}/>
-                  <Text style={styles.displayName}>{user.displayName}</Text>
+                    <CachedImage uri={user.photoURL} style={styles.avatar}/>
+                    <Text style={styles.displayName}>{user.displayName}</Text>
                   </TouchableOpacity>
-                    <TouchableOpacity onPress={() => console.log('Message Pressed')} style={styles.modalProfileActionButton}>
-                      <Ionicons name="chatbubble" size={20} color="#333" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => console.log('Add Friend Pressed')} style={styles.modalProfileActionButton}>
-                      <Ionicons name="person-add" size={20} color="#333" />
-                    </TouchableOpacity>
-                </View>
-
+                  <TouchableOpacity onPress={() => console.log('Message Pressed')} style={styles.modalProfileActionButton}>
+                    <Ionicons name="chatbubble" size={20} color="#333" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => console.log('Add Friend Pressed')} style={styles.modalProfileActionButton}>
+                    <Ionicons name="person-add" size={20} color="#333" />
+                  </TouchableOpacity>
+                </View>)}
 
                 <View>
                   <Text style={styles.commentsHeader}>Comments ({selectedMarker?.comments?.length || 0}):</Text>
