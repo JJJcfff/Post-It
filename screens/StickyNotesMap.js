@@ -96,14 +96,10 @@ const StickyNotesMap = () => {
       }
 
       let location = await Location.getCurrentPositionAsync({});
-      setRegion({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-        latitudeDelta: 0.00422,
-        longitudeDelta: 0.00421,
-      });
+      setCurrentLocation(location.coords);
     })();
   }, []);
+
 
   const getAllMarkers = async () => {
     setLoading(true);
@@ -642,7 +638,7 @@ const StickyNotesMap = () => {
               maxZoomLevel={20}
               region={region}
               showsUserLocation={showUserLocation}
-              followsUserLocation={showUserLocation}
+              followsUserLocation={false}
             >
               {filteredMarkers.map((marker) => (
                 <MarkerComponent
