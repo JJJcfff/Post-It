@@ -36,6 +36,7 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import RNModal from 'react-native-modal';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleUserLocation, toggleFAB } from '../redux/actions';
+import HorizontalSeparator from '../components/HorizontalSeparator';
 
 
 const firestore = getFirestore(firebaseapp);
@@ -205,25 +206,36 @@ const Settings = ({navigation}) => {
                       <Text style={styles.statsText}>Friends: {friendsCount}</Text>
                   </View>
               </View>
+              <Text style={styles.titleText}>
+                  Options:
+              </Text>
+              <HorizontalSeparator/>
               <View style={styles.setting}>
-                  <Text>Show User Location:</Text>
+                  <Text style={styles.statsText}>Show User Location:</Text>
                   <Switch
-                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                    trackColor={{ false: "#ecf1eb", true: "#99dcd5" }}
                     thumbColor={"#f4f3f4"}
                     value={showUserLocation}
                     onValueChange={() => dispatch(toggleUserLocation())}
+                    style={styles.switch}
                   />
               </View>
               <View style={styles.setting}>
-                  <Text>Show FAB:</Text>
+                  <Text style={styles.statsText}>Show FAB:</Text>
                   <Switch
-                    trackColor={{ false: "#767577", true: "#81b0ff" }}
+                    trackColor={{ false: "#ecf1eb", true: "#99dcd5" }}
                     thumbColor={"#f4f3f4"}
                     value={showFAB}
                     onValueChange={() => dispatch(toggleFAB())}
+                    style={styles.switch}
                   />
               </View>
-              <Button title="Logout" onPress={handleLogout}/>
+              <TouchableOpacity onPress={handleLogout} style={styles.button}>
+                  <Text style={styles.buttonText}>
+                      LogOut
+                  </Text>
+              </TouchableOpacity>
+
               {loading && <ActivityIndicator size="large" color="#0000ff"/>}
           </ScrollView>
 
@@ -269,14 +281,37 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 5,
     },
+    button: {
+        backgroundColor: '#ffa5a4',
+        height: 50,
+        padding: 10,
+        margin: 15,
+        borderRadius: 25,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#222',
+        width: '50%',
+        alignSelf: 'center',
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
     setting: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: 15,
         paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomWidth: 2,
+        borderBottomColor: '#222',
+    },
+    titleText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        margin: 15,
     },
     profileCard: {
         flexDirection: 'row',
@@ -290,6 +325,8 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         elevation: 2,
         margin: 10,
+        borderWidth:2,
+        borderColor:'#222222'
     },
     avatar: {
         width: 120,
@@ -297,6 +334,7 @@ const styles = StyleSheet.create({
         borderRadius: 60,
         marginRight: 20,
         margin: 15,
+
     },
     profileInfo: {
         flex: 1,
@@ -309,13 +347,14 @@ const styles = StyleSheet.create({
     },
     statsText: {
         fontSize: 16,
-        color: '#555',
+        fontWeight: 'bold',
+        color: '#333',
         marginVertical: 10,
+
     },
     statsInfo: {
         flex: 1,
         alignItems: 'center',
-
     },
     input: {
         borderColor: '#ccc',
@@ -346,6 +385,24 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#999',
     },
+    switchContainer: {
+        padding: 10,
+        backgroundColor: '#f2f2f2',
+        borderRadius: 20,
+        width: 60,
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#000',
+    },
+    switch: {
+        borderWidth: 2,
+        borderColor: '#000',
+        borderRadius: 16,
+        width: 52,
+        height: 32,
+
+    },
+
 });
 
 
