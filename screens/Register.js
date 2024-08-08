@@ -24,6 +24,7 @@ const Register = ({navigation}) => {
     const auth = firebaseauth;
 
 
+
     const signUp = async () => {
         ///check if all fields are filled
         if (!email || !password || !confirmPassword || !username) {
@@ -37,18 +38,16 @@ const Register = ({navigation}) => {
         setLoading(true);
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(userCredential.user, {
-                displayName: username,
-                photoURL: "https://firebasestorage.googleapis.com/v0/b/post-it-1d453.appspot.com/o/profilePictures%2Fdefault%2Fdefault-avatar.png?alt=media&token=5f87aade-c8b8-46b2-b99b-791fcee91372",
-            });
             const userDocRef = doc(firestore, 'users', userCredential.user.uid);
             await setDoc(userDocRef, {
                 friends: [],
                 notes: [],
                 likes: [],
+                displayName: username,
+                photoURL: "https://firebasestorage.googleapis.com/v0/b/post-it-1d453.appspot.com/o/profilePictures%2Fdefault%2Fdefault-avatar.png?alt=media&token=5f87aade-c8b8-46b2-b99b-791fcee91372",
                 createdAt: serverTimestamp(),
+                modifiedAt: serverTimestamp(),
             });
-
             console.log('User registered');
         } catch (error) {
             console.log(error);

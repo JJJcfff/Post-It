@@ -4,7 +4,8 @@ import AuthStackNavigator from './navigators/AuthStack';
 import MainTabNavigator from './navigators/BottomTabNavigator';
 import { firebaseauth } from './FirebaseConfig';
 import { Provider } from 'react-redux';
-import store from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import { store, persistor } from './redux/store';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -15,9 +16,11 @@ function App() {
 
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        {user ? <MainTabNavigator /> : <AuthStackNavigator />}
-      </NavigationContainer>
+      <PersistGate loading={null} persistor={persistor}>
+        <NavigationContainer>
+          {user ? <MainTabNavigator /> : <AuthStackNavigator />}
+        </NavigationContainer>
+      </PersistGate>
     </Provider>
   );
 }

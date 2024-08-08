@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Button, FlatList, StyleSheet} from 'react-native';
 import {firebaseauth, firestore} from '../FirebaseConfig';
 
-const Chat = ({navigation}) => {
+const MessageList = ({navigation}) => {
     //nothing for nowwa
     return (
         <View style={styles.container}>
@@ -20,4 +20,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Chat;
+export default MessageList;

@@ -15,7 +15,17 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {getAuth, updateProfile} from 'firebase/auth';
-import {getFirestore, collection, query, where, getDocs} from 'firebase/firestore';
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDocs,
+    serverTimestamp,
+    doc,
+    getDoc,
+    updateDoc, setDoc
+} from 'firebase/firestore';
 import {getStorage, ref, uploadBytes, getDownloadURL, deleteObject} from 'firebase/storage';
 import {firebaseapp, firebaseauth} from '../FirebaseConfig';
 import {Image as CachedImage} from 'react-native-expo-image-cache';
@@ -58,8 +68,6 @@ const Settings = ({navigation}) => {
         const unsubscribe = firebaseauth.onAuthStateChanged(async user => {
             if (user) {
                 setUserId(user.uid);
-                setDisplayName(user.displayName || '');
-                setPhotoURL((user.photoURL === '') ? defaultAvatarUri : user.photoURL);
                 await fetchUserData(user.uid);
             }
         });
@@ -69,10 +77,21 @@ const Settings = ({navigation}) => {
 
 
     const fetchUserData = async (userId) => {
-        //TODO: Fetch user data from Firestore
-        setNotesCount(0);
-        setLikesCount(0);
-        setFriendsCount(0);
+        try {
+            const userRef = doc(firestore, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                setDisplayName(userData.displayName || '');
+                setPhotoURL((userData.photoURL === '') ? defaultAvatarUri : userData.photoURL || defaultAvatarUri);
+                setNotesCount(userData.notes ? userData.notes.length : 0);
+                setLikesCount(userData.likes ? userData.likes.length : 0);
+                setFriendsCount(userData.friends ? userData.friends.length : 0);
+                console.log('User data fetched:', userData);
+            }
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+        }
     };
 
     const handleLogout = async () => {
@@ -137,15 +156,28 @@ const Settings = ({navigation}) => {
         }
     };
 
+
+
     const saveProfile = async () => {
         setLoading(true);
+        const updatedData = {
+            displayName: displayName,
+            photoURL: newPhotoURL || photoURL,
+            modifiedAt: serverTimestamp(),
+        };
         try {
-            await updateProfile(user, {displayName, photoURL: newPhotoURL || photoURL}).then(() => {
-                setPhotoURL(newPhotoURL || photoURL);
-                console.log('Profile updated successfully');
-            }).catch((error) => {
-                console.error('Error updating profile:', error);
-            });
+            const userDocRef = doc(firestore, 'users', userId);
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+                await updateDoc(userDocRef, updatedData);
+            } else {
+                await setDoc(userDocRef, {
+                    ...updatedData,
+                    createdAt: serverTimestamp(), // Add createdAt field
+                });
+            }
+            setPhotoURL(newPhotoURL || photoURL);
         } catch (error) {
             console.error('Error updating profile:', error);
         }

@@ -10,6 +10,12 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import RNModal from 'react-native-modal';
 import {getAuth} from "firebase/auth";
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {firebaseauth, firestore} from '../FirebaseConfig';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
+
+
+
 
 
 const NoteModal = ({
@@ -18,12 +24,17 @@ const NoteModal = ({
   handleDeleteTag, searchTags, suggestions, setSuggestions, editVisible, setEditVisible, color, setColor, textColor, setTextColor,
   imageUris, setImageUris, uploadImage, removeImage,likeButtonPressable, setLikeButtonPressable, isNewMarker, setIsNewMarker,
 }) => {
+  const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageUrls, setImageUrls] = useState([]);
   const [initialImageIndex, setInitialImageIndex] = useState(0);
   const [uploadingImages, setUploadingImages] = useState([]);
   const [showBackgroundColorPicker, setShowBackgroundColorPicker] = useState(false);
   const [showTextColorPicker, setShowTextColorPicker] = useState(false);
+  const [noteOwnerUid, setNoteOwnerUid] = useState('');
+  const [noteOwnerDisplayName, setNoteOwnerDisplayName] = useState('');
+  const [noteOwnerPhotoURL, setNoteOwnerPhotoURL] = useState('');
+
 
   useEffect(() => {
     if (!color) {
@@ -32,9 +43,11 @@ const NoteModal = ({
     if (!textColor) {
       setTextColor('#000000');
     }
-    setShowBackgroundColorPicker(false);
-    setShowTextColorPicker(false);
-    setLikeButtonPressable(true);
+    if (selectedMarker) {
+      setShowBackgroundColorPicker(false);
+      setShowTextColorPicker(false);
+      setLikeButtonPressable(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -45,6 +58,35 @@ const NoteModal = ({
 
   const auth = getAuth();
   const user = auth.currentUser;
+
+
+  const fetchNoteOwnerInfo = async () => {
+    try {
+      if (!selectedMarker?.user) {
+        throw new Error("No user ID found in selected marker.");
+      }
+
+      const noteOwnerDocRef = doc(firestore, 'users', selectedMarker.user);
+      const noteOwnerDoc = await getDoc(noteOwnerDocRef);
+      if (noteOwnerDoc.exists()) {
+        const noteOwnerData = noteOwnerDoc.data();
+        setNoteOwnerUid(selectedMarker.user);
+        setNoteOwnerDisplayName(noteOwnerData.displayName);
+        setNoteOwnerPhotoURL(noteOwnerData.photoURL);
+        console.log("Note owner info fetched: ", noteOwnerData);
+      } else {
+        console.error("No such document!");
+      }
+    } catch (error) {
+      console.error("Error fetching note owner info: ", error);
+    }
+  }
+
+  useEffect(() => {
+    if (selectedMarker) {
+      fetchNoteOwnerInfo();
+    }
+  } , [selectedMarker]);
 
   const onSelectColor = (color) => {
     const selectedColor = color.hex || color;
@@ -127,6 +169,15 @@ const NoteModal = ({
     } else {
       console.log("Like button is not pressable");
     }
+  }
+
+  const handleMessageButtonPressed = () => {
+    console.log('Message button pressed');
+    navigation.navigate('Message', { otherUserId: noteOwnerUid });
+  }
+
+  const handleAddFriendButtonPressed = () => {
+    console.log('Add friend button pressed');
   }
 
   const renderViewImageItem = ({ item, index }) => (
@@ -245,13 +296,13 @@ const NoteModal = ({
                 {(selectedMarker?.user === userId) ? (<View style={{alignItems:'center', flex:1, marginVertical:10}}><Text>Posted By You</Text></View>)
                   : (<View style={styles.userProfileContainer}>
                   <TouchableOpacity onPress={() => {console.log('UserProfile Pressed')}} style={styles.profileInfo}>
-                    <CachedImage uri={user.photoURL} style={styles.avatar}/>
-                    <Text style={styles.displayName}>{user.displayName}</Text>
+                    <CachedImage uri={noteOwnerPhotoURL} style={styles.avatar}/>
+                    <Text style={styles.displayName}>{noteOwnerDisplayName}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => console.log('Message Pressed')} style={styles.modalProfileActionButton}>
+                  <TouchableOpacity onPress={handleMessageButtonPressed} style={styles.modalProfileActionButton}>
                     <Ionicons name="chatbubble" size={20} color="#333" />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => console.log('Add Friend Pressed')} style={styles.modalProfileActionButton}>
+                  <TouchableOpacity onPress={handleAddFriendButtonPressed} style={styles.modalProfileActionButton}>
                     <Ionicons name="person-add" size={20} color="#333" />
                   </TouchableOpacity>
                 </View>)}
