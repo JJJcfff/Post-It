@@ -9,6 +9,7 @@ const styles = StyleSheet.create({
   horizontalSeparator: {
     height: 2,
     backgroundColor: '#222',
+    marginTop: 10,
   },
 });
 

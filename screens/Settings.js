@@ -1,53 +1,39 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-    View,
-    Text,
-    TextInput,
-    Button,
-    StyleSheet,
-    TouchableOpacity,
-    ActivityIndicator,
-    ScrollView,
-    Modal,
-    Image,
-    KeyboardAvoidingView,
-    Platform, Switch
+  ActivityIndicator,
+  Appearance,
+  Button,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
 import * as ImagePicker from 'expo-image-picker';
-import {getAuth, updateProfile} from 'firebase/auth';
-import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    getDocs,
-    serverTimestamp,
-    doc,
-    getDoc,
-    updateDoc, setDoc
-} from 'firebase/firestore';
-import {getStorage, ref, uploadBytes, getDownloadURL, deleteObject} from 'firebase/storage';
+import {getAuth} from 'firebase/auth';
+import {doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc,} from 'firebase/firestore';
+import {getDownloadURL, getStorage, ref, uploadBytes} from 'firebase/storage';
 import {firebaseapp, firebaseauth} from '../FirebaseConfig';
 import {Image as CachedImage} from 'react-native-expo-image-cache';
-import {MaterialIcons} from '@expo/vector-icons';
-import {manipulateAsync, SaveFormat} from "expo-image-manipulator";
-import defaultAvatar from "../assets/default-avatar.png";
-import ImageViewer from 'react-native-image-zoom-viewer';
-import RNModal from 'react-native-modal';
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleUserLocation, toggleFAB } from '../redux/actions';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {setTheme, toggleSystemTheme, toggleUserLocation, toggleFAB} from '../redux/actions';
 import HorizontalSeparator from '../components/HorizontalSeparator';
-
+import useAppStyles from "../styles/useAppStyles";
+import {appColors} from '../styles/AppColors';
 
 const firestore = getFirestore(firebaseapp);
 const storage = getStorage(firebaseapp);
 
-const Settings = ({navigation}) => {
+const Settings = ({ navigation }) => {
     const auth = getAuth();
     const user = auth.currentUser;
     const dispatch = useDispatch();
-
-    const defaultAvatarUri = 'https://firebasestorage.googleapis.com/v0/b/post-it-1d453.appspot.com/o/profilePictures%2FjUEWlc8B6nRi6C1yXp2FzZvNTwQ2%2FprofilePicture.jpg?alt=media&token=027763e8-3797-440d-8773-94471d153e62'
 
     const [userId, setUserId] = useState('');
     const [displayName, setDisplayName] = useState('');
@@ -60,13 +46,24 @@ const Settings = ({navigation}) => {
     const [likesCount, setLikesCount] = useState(0);
     const [friendsCount, setFriendsCount] = useState(0);
 
+    // Redux states for theme
+    const theme = useSelector((state) => state.theme);
+    const useSystemTheme = useSelector((state) => state.useSystemTheme);
 
-    //states for sticky notes map screen
-    const showUserLocation = useSelector(state => state.showUserLocation);
-    const showFAB = useSelector(state => state.showFAB);
+    // states for sticky notes map screen
+    const showUserLocation = useSelector((state) => state.showUserLocation);
+    const showFAB = useSelector((state) => state.showFAB);
+
+    const appStyles = useAppStyles();
+    const settingStyles = appStyles.settingStyles;
+    const styles = appStyles.styles;
+    const spacing = appStyles.spacing;
+    const systemTheme = Appearance.getColorScheme();
+    const currentTheme = useSystemTheme ? systemTheme : theme;
+    const colors = appColors[currentTheme] || appColors.light;
 
     useEffect(() => {
-        const unsubscribe = firebaseauth.onAuthStateChanged(async user => {
+        const unsubscribe = firebaseauth.onAuthStateChanged(async (user) => {
             if (user) {
                 setUserId(user.uid);
                 await fetchUserData(user.uid);
@@ -76,6 +73,12 @@ const Settings = ({navigation}) => {
         return () => unsubscribe();
     }, []);
 
+    useEffect(() => {
+        if (useSystemTheme) {
+            const systemTheme = Appearance.getColorScheme();
+            dispatch(setTheme(systemTheme));
+        }
+    }, [useSystemTheme]);
 
     const fetchUserData = async (userId) => {
         try {
@@ -84,7 +87,11 @@ const Settings = ({navigation}) => {
             if (userSnap.exists()) {
                 const userData = userSnap.data();
                 setDisplayName(userData.displayName || '');
-                setPhotoURL((userData.photoURL === '') ? defaultAvatarUri : userData.photoURL || defaultAvatarUri);
+                setPhotoURL(
+                  userData.photoURL === ''
+                    ? defaultAvatarUri
+                    : userData.photoURL || defaultAvatarUri
+                );
                 setNotesCount(userData.notes ? userData.notes.length : 0);
                 setLikesCount(userData.likes ? userData.likes.length : 0);
                 setFriendsCount(userData.friends ? userData.friends.length : 0);
@@ -111,13 +118,17 @@ const Settings = ({navigation}) => {
             }
             const response = await fetch(imageUri);
             if (!response.ok) {
-                throw new Error('Failed to fetch image, status: ' + response.status);
+                throw new Error(
+                  'Failed to fetch image, status: ' + response.status
+                );
             }
             const blob = await response.blob();
-            const storageRef = ref(storage, `profilePictures/${userId}/profilePicture.jpg`);
+            const storageRef = ref(
+              storage,
+              `profilePictures/${userId}/profilePicture.jpg`
+            );
             const snapshot = await uploadBytes(storageRef, blob);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            return downloadURL;
+          return await getDownloadURL(snapshot.ref);
         } catch (error) {
             console.error('Error uploading image:', error);
             return null;
@@ -126,9 +137,10 @@ const Settings = ({navigation}) => {
 
     const pickImage = async () => {
         try {
-            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            const permissionResult =
+              await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (!permissionResult.granted) {
-                alert("Permission to access gallery is required!");
+                alert('Permission to access gallery is required!');
                 return;
             }
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -143,8 +155,8 @@ const Settings = ({navigation}) => {
                 setEditLoading(true);
                 const manipResult = await manipulateAsync(
                   result.assets[0].uri,
-                  [{resize: {width: 500}}],
-                  {compress: 0.7, format: SaveFormat.JPEG}
+                  [{ resize: { width: 500 } }],
+                  { compress: 0.7, format: SaveFormat.JPEG }
                 );
                 const downloadUri = await uploadImage(manipResult.uri);
                 setNewPhotoURL(downloadUri);
@@ -156,8 +168,6 @@ const Settings = ({navigation}) => {
             console.error('Error picking image: ', error);
         }
     };
-
-
 
     const saveProfile = async () => {
         setLoading(true);
@@ -187,56 +197,106 @@ const Settings = ({navigation}) => {
     };
 
     const handleEdit = () => {
-        setNewPhotoURL(photoURL)
-        setEditMode(true)
-    }
+        setNewPhotoURL(photoURL);
+        setEditMode(true);
+    };
+
+    const handleThemeChange = (value) => {
+        if (value === 'system') {
+            dispatch(toggleSystemTheme(true));
+        } else {
+            dispatch(toggleSystemTheme(false));
+            dispatch(setTheme(value));
+        }
+    };
 
     return (
       <View style={styles.container}>
           <ScrollView>
-              <View style={styles.profileCard}>
-                  <TouchableOpacity onPress={handleEdit} style={styles.profileInfo}>
-                      <CachedImage uri={photoURL} style={styles.avatar}/>
-                      <Text style={styles.displayName}>{displayName}</Text>
+              <View style={settingStyles.profileCard}>
+                  <TouchableOpacity
+                    onPress={handleEdit}
+                    style={[styles.flexColumn, {marginLeft: spacing.sm}]}
+                  >
+                      <CachedImage uri={photoURL} style={settingStyles.avatar} />
+                      <Text style={styles.h3Text}>{displayName}</Text>
                   </TouchableOpacity>
 
-                  <View style={styles.statsInfo}>
-                      <Text style={styles.statsText}>Notes: {notesCount}</Text>
-                      <Text style={styles.statsText}>Likes: {likesCount}</Text>
-                      <Text style={styles.statsText}>Friends: {friendsCount}</Text>
+                  <View style={[styles.container, {alignItems:'center'}]}>
+                      <Text style={[styles.h4Text, {marginVertical:spacing.sm}]}>
+                          Notes: {notesCount}
+                      </Text>
+                    <Text style={[styles.h4Text, {marginVertical:spacing.sm}]}>
+                        Likes: {likesCount}
+                      </Text>
+                    <Text style={[styles.h4Text, {marginVertical:spacing.sm}]}>
+                          Friends: {friendsCount}
+                      </Text>
                   </View>
               </View>
-              <Text style={styles.titleText}>
-                  Options:
-              </Text>
-              <HorizontalSeparator/>
-              <View style={styles.setting}>
-                  <Text style={styles.statsText}>Show User Location:</Text>
+
+              <Text style={[styles.h2Text, {marginLeft:spacing.sm, marginVertical: spacing.sm}]}>Options:</Text>
+              <HorizontalSeparator />
+
+              <View style={settingStyles.settingOptions}>
+                  <Text style={styles.h4Text}>Show User Location:</Text>
                   <Switch
-                    trackColor={{ false: "#ecf1eb", true: "#99dcd5" }}
-                    thumbColor={"#f4f3f4"}
+                    trackColor={{ false: colors.secondary, true: colors.cyan }}
+                    thumbColor={colors.primary}
                     value={showUserLocation}
                     onValueChange={() => dispatch(toggleUserLocation())}
-                    style={styles.switch}
+                    style={styles.borderedSwitch}
                   />
               </View>
-              <View style={styles.setting}>
-                  <Text style={styles.statsText}>Show FAB:</Text>
+
+            <View style={settingStyles.settingOptions}>
+                  <Text style={styles.h4Text}>Show FAB:</Text>
                   <Switch
-                    trackColor={{ false: "#ecf1eb", true: "#99dcd5" }}
-                    thumbColor={"#f4f3f4"}
+                    trackColor={{ false: colors.secondary, true: colors.cyan }}
+                    thumbColor={colors.primary}
                     value={showFAB}
                     onValueChange={() => dispatch(toggleFAB())}
-                    style={styles.switch}
+                    style={styles.borderedSwitch}
                   />
               </View>
-              <TouchableOpacity onPress={handleLogout} style={styles.button}>
-                  <Text style={styles.buttonText}>
-                      LogOut
-                  </Text>
+
+              <View style={[settingStyles.settingOptions, useSystemTheme && { opacity: 0.5 }]}>
+                  <Text style={styles.h4Text}>Dark Mode:</Text>
+                  <Switch
+                    trackColor={{ false: colors.secondary, true: colors.cyan }}
+                    thumbColor={colors.primary}
+                    value={theme === 'dark'}
+                    onValueChange={(value) =>
+                      !useSystemTheme && handleThemeChange(value ? 'dark' : 'light')
+                    }
+                    disabled={useSystemTheme}
+                    style={styles.borderedSwitch}
+                  />
+              </View>
+
+            <View style={settingStyles.settingOptions}>
+                  <Text style={styles.h4Text}>Follow System Theme:</Text>
+                  <Switch
+                    trackColor={{ false: colors.secondary, true: colors.cyan }}
+                    thumbColor={colors.primary}
+                    value={useSystemTheme}
+                    onValueChange={(isSystemTheme) => {
+                        if (isSystemTheme) {
+                            handleThemeChange('system');
+                        } else {
+                            dispatch(toggleSystemTheme(false));
+                        }
+                    }}
+                    style={styles.borderedSwitch}
+                  />
+              </View>
+
+
+              <TouchableOpacity onPress={handleLogout} style={[styles.borderedButton, {backgroundColor: colors.pink, marginTop: spacing.lg}]}>
+                  <Text style={styles.borderedButtonText}>Log Out</Text>
               </TouchableOpacity>
 
-              {loading && <ActivityIndicator size="large" color="#0000ff"/>}
+              {loading && <ActivityIndicator size="large" color="#0000ff" />}
           </ScrollView>
 
           <Modal
@@ -246,29 +306,40 @@ const Settings = ({navigation}) => {
             onRequestClose={() => setEditMode(false)}
           >
               <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.modalContainer}
               >
                   <View style={styles.modalContent}>
                       <TouchableOpacity onPress={pickImage}>
-                          <Image source={newPhotoURL === '' ? {uri: photoURL} : {uri: newPhotoURL}}
-                                 style={styles.modalAvatar}/>
+                          <Image
+                            source={
+                                newPhotoURL === ''
+                                  ? { uri: photoURL }
+                                  : { uri: newPhotoURL }
+                            }
+                            style={settingStyles.modalAvatar}
+                          />
                       </TouchableOpacity>
                       <TextInput
-                        style={styles.input}
+                        style={styles.borderedInput}
                         placeholder="Display Name"
                         value={displayName}
                         onChangeText={setDisplayName}
                         autoCapitalize="none"
                         placeholderTextColor="#999"
                       />
-                      {editLoading ? <ActivityIndicator size="large" color="#0000ff"/> :
-                        <Button title="Save" onPress={saveProfile}/>
-                      }
-                      <Button title="Cancel" onPress={() => {
-                          setEditMode(false);
-                          setNewPhotoURL(photoURL)
-                      }}/>
+                      {editLoading ? (
+                        <ActivityIndicator size="large" color="#0000ff" />
+                      ) : (
+                        <Button title="Save" onPress={saveProfile} />
+                      )}
+                      <Button
+                        title="Cancel"
+                        onPress={() => {
+                            setEditMode(false);
+                            setNewPhotoURL(photoURL);
+                        }}
+                      />
                   </View>
               </KeyboardAvoidingView>
           </Modal>
@@ -276,134 +347,5 @@ const Settings = ({navigation}) => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 5,
-    },
-    button: {
-        backgroundColor: '#ffa5a4',
-        height: 50,
-        padding: 10,
-        margin: 15,
-        borderRadius: 25,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: '#222',
-        width: '50%',
-        alignSelf: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    setting: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 15,
-        paddingHorizontal: 20,
-        borderBottomWidth: 2,
-        borderBottomColor: '#222',
-    },
-    titleText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        margin: 15,
-    },
-    profileCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-        borderRadius: 10,
-        backgroundColor: '#fff',
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-        elevation: 2,
-        margin: 10,
-        borderWidth:2,
-        borderColor:'#222222'
-    },
-    avatar: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        marginRight: 20,
-        margin: 15,
-
-    },
-    profileInfo: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    displayName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    statsText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginVertical: 10,
-
-    },
-    statsInfo: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    input: {
-        borderColor: '#ccc',
-        borderWidth: 1,
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '90%',
-        padding: 20,
-        borderRadius: 10,
-        backgroundColor: '#fff',
-        alignItems: 'center',
-    },
-    modalAvatar: {
-        width: 300,
-        height: 300,
-        borderRadius: 150,
-        marginBottom: 30,
-        marginTop: 20,
-        borderWidth: 1,
-        borderColor: '#999',
-    },
-    switchContainer: {
-        padding: 10,
-        backgroundColor: '#f2f2f2',
-        borderRadius: 20,
-        width: 60,
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#000',
-    },
-    switch: {
-        borderWidth: 2,
-        borderColor: '#000',
-        borderRadius: 16,
-        width: 52,
-        height: 32,
-
-    },
-
-});
-
-
 export default Settings;
+
