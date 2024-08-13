@@ -176,7 +176,7 @@ const NoteModal = ({
     navigation.navigate('Message', { otherUserId: noteOwnerUid });
   }
 
-  const handleAddFriendButtonPressed = () => {
+  const handleAddFriendButtonPressed = ( ) => {
     console.log('Add friend button pressed');
   }
 

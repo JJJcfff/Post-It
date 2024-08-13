@@ -602,9 +602,9 @@ const StickyNotesMap = () => {
     setTags(tags.filter(tag => tag !== tagToDelete));
   };
 
-  const handleLocatePress = () => {
+  const handleLocatePress = async () => {
     if (hasPermission) {
-      (async () => {
+      try {
         let location = await Location.getCurrentPositionAsync({});
         setRegion({
           latitude: location.coords.latitude,
@@ -612,9 +612,23 @@ const StickyNotesMap = () => {
           latitudeDelta: 0.00422,
           longitudeDelta: 0.00421,
         });
-      })();
+      } catch (error) {
+        console.error('Failed to fetch location:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to locate',
+        });
+      }
+    } else {
+      Toast.show({
+        type: 'error',
+        text1: 'Location Permission',
+        text2: 'Location permission is not granted',
+      });
     }
   };
+
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

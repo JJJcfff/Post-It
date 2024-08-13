@@ -1,7 +1,5 @@
-import { useSelector } from "react-redux";
-import { Appearance } from 'react-native';
 import { StyleSheet } from 'react-native';
-import {appColors} from './AppColors';
+import useAppColors from './useAppColors';
 
 //const appColors = {
 //   light: {
@@ -29,12 +27,7 @@ import {appColors} from './AppColors';
 // };
 
 const useAppStyles = () => {
-  const useSystemTheme = useSelector(state => state.useSystemTheme);
-  const theme = useSelector(state => state.theme);
-
-  const systemTheme = Appearance.getColorScheme();
-  const currentTheme = useSystemTheme ? systemTheme : theme;
-  const colors = appColors[currentTheme] || appColors.light;
+  const colors = useAppColors();
 
   const generalStyles = StyleSheet.create({
     container: {
@@ -51,8 +44,28 @@ const useAppStyles = () => {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    backgroundImage: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    },
 
     //buttons & switches
+    buttonContainer80: {
+      width: '80%',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    buttonContainer50: {
+      width: '50%',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+
     borderedButton: {
       borderColor: colors.secondary,
       borderWidth: 2,
@@ -67,7 +80,7 @@ const useAppStyles = () => {
       width: '80%',
     },
     borderedButtonText: {
-      color: colors.secondaryText,
+      color: colors.secondary,
       fontWeight: 'bold',
       fontSize: 18,
     },
@@ -152,6 +165,47 @@ const useAppStyles = () => {
 
   });
 
+  const typography = {
+    h1: {
+      fontSize: 32,
+      fontWeight: 'bold',
+    },
+    h2: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    h3: {
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    h4: {
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    h5: {
+      fontSize: 14,
+      fontWeight: 'bold',
+    },
+    h6: {
+      fontSize: 12,
+      fontWeight: 'bold',
+    },
+    body: {
+      fontSize: 16,
+    },
+    caption: {
+      fontSize: 12,
+    },
+  };
+
+  const spacing = {
+    xs: 5, // 5
+    sm: 10, // 10
+    md: 15, // 15
+    lg: 20, // 20
+    xl: 30, // 30
+  };
+
   const settingStyles = StyleSheet.create({
     settingOptions: {
       flexDirection: 'row',
@@ -211,48 +265,20 @@ const useAppStyles = () => {
 
   });
 
-  const typography = {
-    h1: {
-      fontSize: 32,
-      fontWeight: 'bold',
+  const landingStyles = StyleSheet.create({
+    content: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingBottom: 50,
     },
-    h2: {
-      fontSize: 24,
-      fontWeight: 'bold',
-    },
-    h3: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    h4: {
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    h5: {
-      fontSize: 14,
-      fontWeight: 'bold',
-    },
-    h6: {
-      fontSize: 12,
-      fontWeight: 'bold',
-    },
-    body: {
-      fontSize: 16,
-    },
-    caption: {
-      fontSize: 12,
-    },
-  };
+  });
 
-  const spacing = {
-    xs: 5, // 5
-    sm: 10, // 10
-    md: 15, // 15
-    lg: 20, // 20
-    xl: 30, // 30
-  };
+  return { styles: generalStyles, typography, spacing,
+    settingStyles,
+    landingStyles,
 
-  return { styles: generalStyles, settingStyles, typography, spacing, colors };
+  };
 };
 
 export default useAppStyles;
