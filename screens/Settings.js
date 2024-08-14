@@ -24,7 +24,7 @@ import {Image as CachedImage} from 'react-native-expo-image-cache';
 import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import {setTheme, toggleSystemTheme, toggleUserLocation, toggleFAB} from '../redux/actions';
 import HorizontalSeparator from '../components/HorizontalSeparator';
-import {useAppStyles, settingStyles} from "../styles/useAppStyles";
+import useAppStyles from "../styles/useAppStyles";
 import useAppColors from "../styles/useAppColors";
 
 const firestore = getFirestore(firebaseapp);
@@ -56,6 +56,7 @@ const Settings = ({ navigation }) => {
 
     const appStyles = useAppStyles();
     const styles = appStyles.styles;
+    const settingStyles = appStyles.settingStyles;
     const spacing = appStyles.spacing;
     const colors = useAppColors();
 

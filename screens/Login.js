@@ -6,16 +6,20 @@ import {
     TextInput,
     View,
     Text,
-    TouchableOpacity,
+    TouchableOpacity, ImageBackground,
 } from 'react-native';
 import {firebaseauth} from '../FirebaseConfig';
 import {signInWithEmailAndPassword} from 'firebase/auth';
-
+import useAppStyles from '../styles/useAppStyles';
+import useAppColors from '../styles/useAppColors';
 const Login = ({navigation}) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const auth = firebaseauth;
+
+    const styles = useAppStyles().styles;
+    const colors = useAppColors();
 
     useEffect(() => {
         const debug = true; // Set to true if you want to enable debug mode
@@ -39,91 +43,46 @@ const Login = ({navigation}) => {
 
     return (
         <KeyboardAvoidingView style={styles.container} behavior="padding">
-            <View style={styles.innerContainer}>
-                <Text style={styles.title}>Thoughtscape</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    placeholderTextColor="#aaa"
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                    placeholderTextColor="#aaa"
-                />
-                {loading ? (
-                    <ActivityIndicator size="large" color="#FF6B6B"/>
-                ) : (
-                    <TouchableOpacity style={styles.button} onPress={signIn}>
-                        <Text style={styles.buttonText}>Sign In</Text>
+            <ImageBackground source={require('../assets/login-page-background.jpg')} style={styles.backgroundImage}>
+                <View style={[styles.overlay, {backgroundColor: 'rgba(255, 255, 255, 0.5)'}]} />
+                <View style={styles.flexColumn}>
+                    <Text style={[styles.h1Text, {marginBottom:40}]}>Noted</Text>
+                    <View style={styles.inputContainer} >
+                    <TextInput
+                        style={[styles.borderedInput, {marginBottom: 20, width: 300, height: 50}]}
+                        placeholder="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                        placeholderTextColor="#aaa"
+                    />
+                    </View>
+                    <View style={styles.inputContainer}>
+                    <TextInput
+                      style={[styles.borderedInput, {marginBottom: 20, width: 300, height: 50}]}
+                        placeholder="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        placeholderTextColor="#aaa"
+                    />
+                    </View>
+                    <View style={[styles.buttonContainer80, {position:'absolute', bottom:'7%'}]}>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#FF6B6B"/>
+                    ) : (
+                        <TouchableOpacity style={[styles.borderedButton, {width: 200, backgroundColor: colors.pink, marginBottom:20}] } onPress={signIn}>
+                            <Text style={styles.borderedButtonText}>Sign In</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={() => navigation.navigate('Landing')}>
+                        <Text style={styles.borderedButtonText}>Back</Text>
                     </TouchableOpacity>
-                )}
-                <TouchableOpacity onPress={() => navigation.navigate('Landing')}>
-                    <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
-            </View>
+                    </View>
+                </View>
+            </ImageBackground>
         </KeyboardAvoidingView>
     );
 };
 
 export default Login;
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F9F9F9',
-    },
-    innerContainer: {
-        width: '80%',
-        padding: 20,
-        backgroundColor: '#FFF',
-        borderRadius: 10,
-        alignItems: 'center',
-        elevation: 5,
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 20,
-        fontFamily: 'YourFontFamily', // Change to the desired font family
-    },
-    input: {
-        width: '100%',
-        height: 50,
-        borderColor: '#ddd',
-        borderWidth: 1,
-        borderRadius: 5,
-        paddingHorizontal: 15,
-        marginVertical: 10,
-        backgroundColor: '#FFF',
-        color: '#333',
-    },
-    button: {
-        width: '100%',
-        height: 50,
-        backgroundColor: '#FF6B6B',
-        borderRadius: 5,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginVertical: 10,
-    },
-    buttonText: {
-        color: '#FFF',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    backButtonText: {
-        color: '#FF6B6B',
-        marginTop: 20,
-        textDecorationLine: 'underline',
-    },
-});

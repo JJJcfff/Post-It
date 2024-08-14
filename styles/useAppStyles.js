@@ -40,6 +40,7 @@ const useAppStyles = () => {
       justifyContent: 'space-between',
     },
     flexColumn: {
+      flex: 1,
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
@@ -138,9 +139,9 @@ const useAppStyles = () => {
       borderWidth: 2,
       padding: 10,
       borderRadius: 10,
-      margin: 10,
       backgroundColor: colors.primary,
       color: colors.secondary,
+      fontSize: 16,
     },
     inputLabel: {
       fontSize: 16,
@@ -148,6 +149,11 @@ const useAppStyles = () => {
       color: colors.secondary,
       margin: 10,
     },
+    inputContainer: {
+      width: '80%',
+      marginVertical: 5,
+    },
+
 
     //modal
     modalContent: {
