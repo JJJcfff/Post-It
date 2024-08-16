@@ -2,9 +2,13 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {Marker} from 'react-native-maps';
 import {Image as CachedImage} from 'react-native-expo-image-cache';
+import useAppStyles from "../styles/useAppStyles";
 
 const MarkerComponent = ({marker, onPress, onDragStart, onDragEnd, userId}) => {
   console.log(marker.imageUris[0]);
+
+  const styles = useAppStyles().markerStyles;
+
   return (
     <Marker
       key={marker.id}
@@ -15,7 +19,7 @@ const MarkerComponent = ({marker, onPress, onDragStart, onDragEnd, userId}) => {
       onDragEnd={(e) => onDragEnd(e, marker.id)}
     >
       <View style={[styles.stickyNote, {backgroundColor: marker.color || 'yellow'}]}>
-        {(marker.imageUris && marker.imageUris.length != 0 && marker.imageUris[0] != '') ? (
+        {(marker.imageUris && marker.imageUris.length !== 0 && marker.imageUris[0] !== '') ? (
           <View>
             <Text style={[styles.stickyNoteText, {color: marker.textColor || 'black'}]} numberOfLines={2}>
               {marker.text}
@@ -42,21 +46,5 @@ const MarkerComponent = ({marker, onPress, onDragStart, onDragEnd, userId}) => {
   );
 };
 
-const styles = StyleSheet.create({
-  stickyNote: {
-    padding: 5,
-    borderRadius: 5,
-    maxHeight: 260,
-    maxWidth: 160,
-  },
-  stickyNoteText: {
-    fontSize: 12,
-    flexWrap: 'wrap',
-    paddingBottom: 5,
-  },
-  counterText: {
-    fontSize: 10,
-  },
-});
 
 export default MarkerComponent;

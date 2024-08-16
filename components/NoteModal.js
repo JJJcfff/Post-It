@@ -259,7 +259,7 @@ const NoteModal = ({
               setIsNewMarker(false);
             }
           }}>
-            <Text style={styles.closeButtonText}>✕</Text>
+            <Ionicons name="close-circle-outline" size={30}></Ionicons>
           </TouchableOpacity>
           {(editVisible && !isNewMarker) && (
             <TouchableOpacity style={styles.backButton} onPress={() => setEditVisible(false)}>
@@ -424,7 +424,7 @@ const NoteModal = ({
                     <TouchableOpacity onPress={() => setShowBackgroundColorPicker(!showBackgroundColorPicker)}>
                       <Preview
                         hideInitialColor={true}
-                        style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                        style={styles.colorPreview}
                       />
                     </TouchableOpacity>
                     {showBackgroundColorPicker && (
@@ -432,8 +432,8 @@ const NoteModal = ({
                         <HueSlider />
                         <HSLSaturationSlider style={{ marginTop: 20 }} />
                         <Swatches
-                          colors={['#FF4E50', '#FC913A', '#F9D423', '#A8E6CF', '#69B4FF', '#C779D0']}
-                          style={{ marginTop: 20 }}
+                          colors={['#ff6347', '#ffdf72', '#ffa5a4', '#ecf1eb', '#99dcd5']}
+                          style={styles.colorSwatches}
                         />
                       </>
                     )}
@@ -452,7 +452,7 @@ const NoteModal = ({
                     <TouchableOpacity onPress={() => setShowTextColorPicker(!showTextColorPicker)}>
                       <Preview
                         hideInitialColor={true}
-                        style={{ width: '60%', height: 30, marginBottom: 20, alignSelf: 'center' }}
+                        style={styles.colorPreview}
                       />
                     </TouchableOpacity>
                     {showTextColorPicker && (

@@ -31,6 +31,7 @@ import {useSelector} from "react-redux";
 import {ActivityIndicator} from "react-native";
 import useAppStyles from "../styles/useAppStyles";
 import useAppColors from "../styles/useAppColors";
+import Icon from "react-native-vector-icons/Ionicons";
 
 
 const firestore = getFirestore(firebaseapp);
@@ -683,10 +684,11 @@ const StickyNotesMap = () => {
                 {isLocating ? (
                   <ActivityIndicator size="small" color="#0000ff" />
                 ) : (
-                  <Image source={locationIcon} style={styles.fabIcon} />
+                  <Icon name="navigate" size={25} color="#000"/>
                 )}
               </TouchableOpacity>
             )}
+
           </View>
         )}
         <NoteModal

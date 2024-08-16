@@ -154,6 +154,15 @@ const useAppStyles = () => {
       width: '80%',
       marginVertical: 5,
     },
+    searchBar: {
+      height: 40,
+      borderColor: colors.secondary,
+      borderWidth: 2,
+      borderRadius: 10,
+      margin: 10,
+      paddingHorizontal: 10,
+      backgroundColor: colors.primary,
+    },
 
 
     //modal
@@ -302,15 +311,17 @@ const useAppStyles = () => {
     },
     fab: {
       position: 'absolute',
-      width: 56,
-      height: 56,
+      width: 50,
+      height: 50,
       alignItems: 'center',
       justifyContent: 'center',
       right: 20,
       bottom: 20,
-      backgroundColor: '#fff',
-      borderRadius: 28,
-      elevation: 8
+      borderRadius: 25,
+      backgroundColor: colors.primary,
+      elevation: 8,
+      borderWidth: 2,
+      borderColor: colors.secondary,
     },
     fabIcon: {
       width: 24,
@@ -369,8 +380,7 @@ const useAppStyles = () => {
       position: 'absolute',
       top: 10,
       right: 10,
-      backgroundColor: '#FF6347',
-      borderRadius: 20,
+      borderRadius: 15,
       padding: 5,
       zIndex: 1,
     },
@@ -383,13 +393,14 @@ const useAppStyles = () => {
       position: 'absolute',
       top: 10,
       left: 10,
-      backgroundColor: '#9E9E9E',
-      borderRadius: 10,
+      borderRadius: 15,
+      borderWidth: 2,
+      borderColor: colors.secondary,
       padding: 10,
       zIndex: 1,
     },
     backButtonText: {
-      color: 'white',
+      color: colors.secondary,
       fontWeight: 'bold',
       textAlign: 'center',
     },
@@ -400,7 +411,7 @@ const useAppStyles = () => {
       fontSize: 24,
       fontWeight: 'bold',
       marginBottom: 20,
-      color: '#333',
+      color: colors.secondary,
     },
     likeCommentRow: {
       flexDirection: 'row',
@@ -410,12 +421,14 @@ const useAppStyles = () => {
       marginTop: 10,
     },
     likeButton: {
-      backgroundColor: '#2196F3',
+      backgroundColor: colors.cyan,
       borderRadius: 10,
       padding: 10,
+      borderWidth: 2,
+      borderColor: colors.secondary,
     },
     likeButtonText: {
-      color: 'white',
+      color: colors.secondaryText,
       fontWeight: 'bold',
     },
     commentList: {
@@ -423,10 +436,10 @@ const useAppStyles = () => {
     },
     comment: {
       fontSize: 14,
-      color: '#666',
-      marginBottom: 5,
-      padding: 10,
-      backgroundColor: '#f5f5f5',
+      color: colors.secondary,
+      marginBottom: 10,
+      padding: 15,
+      backgroundColor: colors.mint,
       borderRadius: 10,
     },
     commentsHeader: {
@@ -435,7 +448,7 @@ const useAppStyles = () => {
       marginTop: 10,
       marginBottom: 5,
       width: '100%',
-      color: '#333',
+      color: colors.secondary,
     },
     noCommentsText: {
       fontSize: 14,
@@ -451,27 +464,32 @@ const useAppStyles = () => {
     },
     commentInput: {
       height: 40,
-      borderColor: '#ddd',
-      borderWidth: 1,
+      borderColor: colors.secondary,
+      borderWidth: 2,
       borderRadius: 10,
       paddingHorizontal: 10,
       paddingVertical: 10,
+      backgroundColor: colors.primary,
       flex: 1,
     },
     addButton: {
-      backgroundColor: '#FF9800',
+      backgroundColor: colors.tomato,
       borderRadius: 10,
       padding: 10,
       marginLeft: 10,
+      borderWidth: 2,
+      borderColor: colors.secondary,
     },
     addButtonText: {
       color: 'white',
       fontWeight: 'bold',
     },
     editButton: {
-      backgroundColor: '#FF5722',
+      backgroundColor: colors.pink,
       borderRadius: 10,
       padding: 10,
+      borderWidth: 2,
+      borderColor: colors.secondary,
     },
     editButtonText: {
       color: 'white',
@@ -482,21 +500,22 @@ const useAppStyles = () => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
-      padding: 10,
       marginBottom: 40,
     },
     button: {
-      backgroundColor: '#4CAF50',
+      backgroundColor: colors.cyan,
       borderRadius: 10,
       padding: 10,
       elevation: 2,
       marginHorizontal: 10,
+      borderWidth: 2,
+      borderColor: colors.secondary,
     },
     deleteButton: {
-      backgroundColor: '#f44336',
+      backgroundColor: colors.pink,
     },
     buttonText: {
-      color: 'white',
+      color: colors.primaryText,
       fontWeight: 'bold',
       textAlign: 'center',
     },
@@ -506,16 +525,19 @@ const useAppStyles = () => {
       marginVertical: 5,
     },
     tagBox: {
-      backgroundColor: '#e0e0e0',
+      backgroundColor: colors.yellow,
       borderRadius: 10,
-      padding: 10,
-      margin: 5,
+      borderWidth: 2,
+      borderColor: colors.secondary,
+      padding: 8,
+      marginRight: 10,
+      marginVertical: 5,
       flexDirection: 'row',
       alignItems: 'center',
     },
     tagText: {
-      color: '#333',
-      fontSize: 10,
+      color: colors.secondary,
+      fontSize: 12,
       flexWrap: 'wrap',
       maxWidth: 90,
     },
@@ -541,13 +563,15 @@ const useAppStyles = () => {
       zIndex: 1,
     },
     addTagButton: {
-      backgroundColor: '#2196F3',
+      backgroundColor: colors.cyan,
       borderRadius: 10,
       padding: 10,
       marginLeft: 10,
+      borderWidth: 2,
+      borderColor: colors.secondary,
     },
     addTagButtonText: {
-      color: 'white',
+      color: colors.secondaryText,
       fontWeight: 'bold',
     },
     tagInput: {
@@ -556,6 +580,7 @@ const useAppStyles = () => {
       flex: 1,
       zIndex: 1,
       borderWidth:0,
+      borderRadius: 10,
     },
     autocompleteContainer: {
       flex: 1,
@@ -563,14 +588,14 @@ const useAppStyles = () => {
     },
     suggestionText: {
       padding: 10,
-      backgroundColor: '#fff',
-      borderBottomColor: '#ddd',
+      backgroundColor: colors.mint,
+      borderBottomColor: colors.secondary,
       borderBottomWidth: 1,
       width: '100%',
     },
     borderedInput: {
-      borderColor: '#bbb',
-      borderWidth: 1,
+      borderColor: colors.secondary,
+      borderWidth: 2,
       borderRadius: 10,
       padding: 10,
       marginBottom: 10,
@@ -578,17 +603,38 @@ const useAppStyles = () => {
       minHeight: 80,
     },
     colorPickerContainer: {
-      width: '90%',
+      flex:1,
+      width: '100%',
       alignItems: 'center',
+      justifyContent: 'center',
       marginTop: 20,
       marginBottom: 50,
+      borderRadius: 10,
+      padding: 10,
+      backgroundColor: colors.primary,
+      borderWidth: 2,
+      borderColor: colors.secondary,
+
     },
     colorPickerLabel: {
       fontSize: 16,
       fontWeight: 'bold',
       color: '#333',
-      marginBottom: 10,
+      marginVertical: 10,
     },
+    colorPreview: {
+      width: '80%',
+      height: 40,
+      marginBottom: 20,
+      alignSelf: 'center',
+      borderRadius: 5,
+      borderWidth: 2,
+      borderColor: colors.secondary,
+    },
+    colorSwatches: {
+      marginTop:20,
+    },
+
     noteImage: {
       width: 200,
       height: 200,
@@ -627,13 +673,17 @@ const useAppStyles = () => {
       fontSize: 12,
     },
     addImageButton: {
-      backgroundColor: '#2196F3',
+      backgroundColor: colors.tomato,
       borderRadius: 10,
+      borderWidth: 2,
+      borderColor: colors.secondary,
       padding: 10,
-      marginTop: 10,
+      width: '100%',
+      alignItems: 'center',
+      marginBottom: 15,
     },
     addImageButtonText: {
-      color: 'white',
+      color: colors.secondaryText,
       fontWeight: 'bold',
     },
     fullScreenModal: {
@@ -673,11 +723,31 @@ const useAppStyles = () => {
     },
   });
 
+  const markerStyles = StyleSheet.create({
+    stickyNote: {
+      padding: 5,
+      borderRadius: 5,
+      borderWidth: 1,
+      maxHeight: 260,
+      maxWidth: 160,
+    },
+    stickyNoteText: {
+      fontSize: 12,
+      flexWrap: 'wrap',
+      paddingBottom: 5,
+    },
+    counterText: {
+      fontSize: 10,
+    },
+  });
+
+
   return { styles: generalStyles, typography, spacing,
     settingStyles,
     landingStyles,
   mapStyles,
-    noteModalStyles
+    noteModalStyles,
+    markerStyles,
   };
 };
 
