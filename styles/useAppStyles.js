@@ -93,6 +93,7 @@ const useAppStyles = () => {
       height: 32,
     },
 
+
     //texts
     h1Text: {
       fontSize: 32,
@@ -167,7 +168,12 @@ const useAppStyles = () => {
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'rgba(0,0,0,0.5)',
-    }
+    },
+
+    toast: {
+      zIndex: 99,
+      position: 'absolute',
+    },
 
   });
 
@@ -280,10 +286,398 @@ const useAppStyles = () => {
     },
   });
 
+  const mapStyles = StyleSheet.create({
+    toast: {
+      zIndex: 99,
+      position: 'absolute',
+    },
+    modal: {
+      zIndex: 1,
+    },
+    container: {
+      flex: 1,
+    },
+    map: {
+      flex: 1,
+    },
+    fab: {
+      position: 'absolute',
+      width: 56,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+      right: 20,
+      bottom: 20,
+      backgroundColor: '#fff',
+      borderRadius: 28,
+      elevation: 8
+    },
+    fabIcon: {
+      width: 24,
+      height: 24
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    },
+    modalContent: {
+      width: 300,
+      padding: 20,
+      backgroundColor: 'white',
+      borderRadius: 10,
+      elevation: 10,
+    },
+    loadingText: {
+      marginTop: 10,
+      fontSize: 16,
+      color: '#0000ff',
+    },
+  });
+
+  const noteModalStyles = StyleSheet.create({
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 22,
+    },
+    modalView: {
+      width: '100%',
+      maxHeight: '90%',
+      backgroundColor: 'white',
+      borderRadius: 20,
+      paddingLeft: 20,
+      paddingRight: 20,
+      paddingTop: 30,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    modalViewLarge: {
+      width: '100%',
+      maxHeight: '80%',
+    },
+    closeButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      backgroundColor: '#FF6347',
+      borderRadius: 20,
+      padding: 5,
+      zIndex: 1,
+    },
+    closeButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      fontSize: 18,
+    },
+    backButton: {
+      position: 'absolute',
+      top: 10,
+      left: 10,
+      backgroundColor: '#9E9E9E',
+      borderRadius: 10,
+      padding: 10,
+      zIndex: 1,
+    },
+    backButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    noteScrollView: {
+      width: '100%',
+    },
+    modalText: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      color: '#333',
+    },
+    likeCommentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+      marginTop: 10,
+    },
+    likeButton: {
+      backgroundColor: '#2196F3',
+      borderRadius: 10,
+      padding: 10,
+    },
+    likeButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+    },
+    commentList: {
+      width: '100%',
+    },
+    comment: {
+      fontSize: 14,
+      color: '#666',
+      marginBottom: 5,
+      padding: 10,
+      backgroundColor: '#f5f5f5',
+      borderRadius: 10,
+    },
+    commentsHeader: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginTop: 10,
+      marginBottom: 5,
+      width: '100%',
+      color: '#333',
+    },
+    noCommentsText: {
+      fontSize: 14,
+      color: '#999',
+      fontStyle: 'italic',
+      marginBottom: 10,
+    },
+    commentRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+      width: '100%',
+    },
+    commentInput: {
+      height: 40,
+      borderColor: '#ddd',
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      flex: 1,
+    },
+    addButton: {
+      backgroundColor: '#FF9800',
+      borderRadius: 10,
+      padding: 10,
+      marginLeft: 10,
+    },
+    addButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+    },
+    editButton: {
+      backgroundColor: '#FF5722',
+      borderRadius: 10,
+      padding: 10,
+    },
+    editButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+      padding: 10,
+      marginBottom: 40,
+    },
+    button: {
+      backgroundColor: '#4CAF50',
+      borderRadius: 10,
+      padding: 10,
+      elevation: 2,
+      marginHorizontal: 10,
+    },
+    deleteButton: {
+      backgroundColor: '#f44336',
+    },
+    buttonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    tagsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginVertical: 5,
+    },
+    tagBox: {
+      backgroundColor: '#e0e0e0',
+      borderRadius: 10,
+      padding: 10,
+      margin: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    tagText: {
+      color: '#333',
+      fontSize: 10,
+      flexWrap: 'wrap',
+      maxWidth: 90,
+    },
+    deleteTagText: {
+      color: 'red',
+      fontSize: 12,
+      marginLeft: 5,
+    },
+    scrollContainer: {
+      width: '100%',
+      maxHeight: '95%',
+      marginTop: 20,
+    },
+    scrollContent: {
+      alignItems: 'center',
+    },
+    tagInputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 10,
+      width: '100%',
+      flex: 1,
+      zIndex: 1,
+    },
+    addTagButton: {
+      backgroundColor: '#2196F3',
+      borderRadius: 10,
+      padding: 10,
+      marginLeft: 10,
+    },
+    addTagButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+    },
+    tagInput: {
+      height: 40,
+      paddingHorizontal: 10,
+      flex: 1,
+      zIndex: 1,
+      borderWidth:0,
+    },
+    autocompleteContainer: {
+      flex: 1,
+      zIndex: 1,
+    },
+    suggestionText: {
+      padding: 10,
+      backgroundColor: '#fff',
+      borderBottomColor: '#ddd',
+      borderBottomWidth: 1,
+      width: '100%',
+    },
+    borderedInput: {
+      borderColor: '#bbb',
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 10,
+      marginBottom: 10,
+      width: '100%',
+      minHeight: 80,
+    },
+    colorPickerContainer: {
+      width: '90%',
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 50,
+    },
+    colorPickerLabel: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#333',
+      marginBottom: 10,
+    },
+    noteImage: {
+      width: 200,
+      height: 200,
+      margin: 10,
+    },
+    imageList: {
+      maxHeight: 220,
+    },
+    imageListContent: {
+      paddingHorizontal: 10,
+    },
+    imageContainer: {
+      position: 'relative',
+      marginHorizontal: 5,
+    },
+    squareImageContainer: {
+      width: 180,
+      height: 180,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#f0f0f0',
+      overflow: 'hidden',
+      borderRadius: 10,
+    },
+    deleteImageButton: {
+      position: 'absolute',
+      top: 5,
+      right: 5,
+      backgroundColor: 'rgba(255, 0, 0, 0.7)',
+      borderRadius: 15,
+      padding: 5,
+    },
+    deleteImageButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      fontSize: 12,
+    },
+    addImageButton: {
+      backgroundColor: '#2196F3',
+      borderRadius: 10,
+      padding: 10,
+      marginTop: 10,
+    },
+    addImageButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+    },
+    fullScreenModal: {
+      margin: 0,
+      justifyContent: 'center',
+    },
+    profileInfo: {
+      flex: 1,
+      //side by side
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    avatar: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      margin: 15,
+    },
+    displayName: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginLeft: 10,
+    },
+    userProfileContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      padding: 10,
+      backgroundColor: '#f5f5f5',
+      marginTop: 10,
+      borderRadius: 10,
+    },
+    modalProfileActionButton: {
+      padding: 10,
+      marginHorizontal: 10,
+    },
+  });
+
   return { styles: generalStyles, typography, spacing,
     settingStyles,
     landingStyles,
-
+  mapStyles,
+    noteModalStyles
   };
 };
 

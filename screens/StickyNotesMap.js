@@ -28,6 +28,9 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import * as Location from 'expo-location';
 import locationIcon from '../assets/location-icon.png';
 import {useSelector} from "react-redux";
+import {ActivityIndicator} from "react-native";
+import useAppStyles from "../styles/useAppStyles";
+import useAppColors from "../styles/useAppColors";
 
 
 const firestore = getFirestore(firebaseapp);
@@ -59,6 +62,7 @@ const StickyNotesMap = () => {
 
   const [hasPermission, setHasPermission] = useState(null);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
   const showUserLocation = useSelector(state => state.showUserLocation);
   const showFAB = useSelector(state => state.showFAB);
   const [region, setRegion] = useState({
@@ -67,6 +71,9 @@ const StickyNotesMap = () => {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
+
+  const colors = useAppColors();
+  const styles = useAppStyles().mapStyles;
 
   useEffect(() => {
     const setAuthUser = () => {
@@ -604,6 +611,8 @@ const StickyNotesMap = () => {
 
   const handleLocatePress = async () => {
     if (hasPermission) {
+      console.log('Locating user...');
+      setIsLocating(true);
       try {
         let location = await Location.getCurrentPositionAsync({});
         setRegion({
@@ -619,6 +628,8 @@ const StickyNotesMap = () => {
           text1: 'Error',
           text2: 'Failed to locate',
         });
+      } finally {
+        setIsLocating(false);
       }
     } else {
       Toast.show({
@@ -630,11 +641,13 @@ const StickyNotesMap = () => {
   };
 
 
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <SearchBar searchText={searchText} handleSearch={handleSearch}/>
+        <Toast style={styles.toast}/>
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading...</Text>
@@ -665,10 +678,15 @@ const StickyNotesMap = () => {
                 />
               ))}
             </MapView>
-            {showFAB && (<TouchableOpacity style={styles.fab} onPress={handleLocatePress}>
-              <Image source={locationIcon} style={styles.fabIcon} />
-            </TouchableOpacity>)}
-
+            {showFAB && (
+              <TouchableOpacity style={styles.fab} onPress={handleLocatePress} disabled={isLocating}>
+                {isLocating ? (
+                  <ActivityIndicator size="small" color="#0000ff" />
+                ) : (
+                  <Image source={locationIcon} style={styles.fabIcon} />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         )}
         <NoteModal
@@ -709,61 +727,10 @@ const StickyNotesMap = () => {
           isNewMarker={isNewMarker}
           setIsNewMarker={setIsNewMarker}
         />
-        <Toast style={styles.toast}/>
       </View>
       </TouchableWithoutFeedback>
     </GestureHandlerRootView>
   );
 };
-
-const styles = StyleSheet.create({
-  toast: {
-    zIndex: 99,
-    position: 'absolute',
-  },
-  modal: {
-    zIndex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  fab: {
-    position: 'absolute',
-    width: 56,
-    height: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#fff',
-    borderRadius: 28,
-    elevation: 8
-  },
-  fabIcon: {
-    width: 24,
-    height: 24
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-  },
-  modalContent: {
-    width: 300,
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    elevation: 10,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#0000ff',
-  },
-});
 
 export default StickyNotesMap;
