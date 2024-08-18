@@ -1,27 +1,23 @@
 import React, {useEffect, useState} from 'react';
-import {Keyboard, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, Image} from 'react-native';
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+  Image,
+  Modal,
+  Platform
+} from 'react-native';
 import MapView from 'react-native-maps';
 import Toast from 'react-native-toast-message';
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  getFirestore,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-  where
-} from 'firebase/firestore';
+import {collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, onSnapshot, orderBy, query, serverTimestamp, Timestamp , setDoc, updateDoc, where} from 'firebase/firestore';
 import {firebaseapp, firebaseauth} from '../FirebaseConfig';
 import {deleteObject, getDownloadURL, getStorage, ref, uploadBytes} from 'firebase/storage';
 import customMapStyle from '../assets/customMapStyle.json';
 import MarkerComponent from '../components/MarkerComponent';
+import EmojiComponent from "../components/EmojiComponent";
 import NoteModal from '../components/NoteModal';
 import SearchBar from '../components/SearchBar';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -32,7 +28,7 @@ import {ActivityIndicator} from "react-native";
 import useAppStyles from "../styles/useAppStyles";
 import useAppColors from "../styles/useAppColors";
 import Icon from "react-native-vector-icons/Ionicons";
-
+import EmojiSelector, { Categories } from "react-native-emoji-selector";
 
 const firestore = getFirestore(firebaseapp);
 const storage = getStorage(firebaseapp);
@@ -65,6 +61,7 @@ const StickyNotesMap = () => {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [isLocating, setIsLocating] = useState(false);
   const showUserLocation = useSelector(state => state.showUserLocation);
+  const [followsUserLocation, setFollowsUserLocation] = useState(true);
   const showFAB = useSelector(state => state.showFAB);
   const [region, setRegion] = useState({
     latitude: 37.78825,
@@ -73,8 +70,18 @@ const StickyNotesMap = () => {
     longitudeDelta: 0.0421,
   });
 
+  //states for emoji
+  const [emoji, setEmoji] = useState('');
+  const [userEmoji, setUserEmoji] = useState(null);
+  const [emojiList, setEmojiList] = useState([]);
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  const [isChangingEmoji, setIsChangingEmoji] = useState(false);
+
+
+
   const colors = useAppColors();
   const styles = useAppStyles().mapStyles;
+  const otherStyles = useAppStyles();
 
   useEffect(() => {
     const setAuthUser = () => {
@@ -95,7 +102,9 @@ const StickyNotesMap = () => {
   }, []);
 
   useEffect(() => {
-    (async () => {
+    let subscription;
+
+    const startWatchingLocation = async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
       setHasPermission(status === 'granted');
       if (status !== 'granted') {
@@ -103,10 +112,27 @@ const StickyNotesMap = () => {
         return;
       }
 
-      let location = await Location.getCurrentPositionAsync({});
-      setCurrentLocation(location.coords);
-    })();
+      subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 10000, // Update every 10 seconds
+          distanceInterval: 10, // Update every 10 meters
+        },
+        (location) => {
+          setCurrentLocation(location.coords);
+        }
+      );
+    };
+
+    startWatchingLocation();
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
   }, []);
+
 
 
   const getAllMarkers = async () => {
@@ -129,8 +155,26 @@ const StickyNotesMap = () => {
     }
   };
 
+  const getAllEmojis = async () => {
+    try {
+      const emojisCollection = collection(firestore, 'emojiMarkers');
+      const emojisSnapshot = await getDocs(emojisCollection);
+      const emojisList = emojisSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setEmojiList(emojisList);
+      await setUserEmoji(emojisList.find(emoji => emoji.userId === userId));
+    } catch (error) {
+      console.error("Error fetching emojis: ", error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to load emojis',
+      });
+    }
+  }
+
   useEffect(() => {
     getAllMarkers();
+    getAllEmojis();
   }, []);
 
   useEffect(() => {
@@ -142,6 +186,16 @@ const StickyNotesMap = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(firestore, 'emojiMarkers'), (snapshot) => {
+      const updatedEmojiList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setEmojiList(updatedEmojiList);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
 
   const updateMarker = async (updatedMarker) => {
     try {
@@ -611,6 +665,7 @@ const StickyNotesMap = () => {
   };
 
   const handleLocatePress = async () => {
+    console.log("Current Location: ", currentLocation);
     if (hasPermission) {
       console.log('Locating user...');
       setIsLocating(true);
@@ -641,95 +696,296 @@ const StickyNotesMap = () => {
     }
   };
 
+  const AddEmoji = async (emoji) => {
+    console.log('Adding Emoji');
+    console.log('Emoji: ', emoji);
+    if (!emoji) return;
+    const coordinates = {
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
+    }
+    try {
+      const emojiRef = doc(firestore, 'emojiMarkers', userId);
+      const emojiData = {
+        userId: userId,
+        emoji: emoji,
+        coordinate: coordinates,
+        weight: 1,
+        createdAt: userEmoji ? userEmoji.createdAt : serverTimestamp(),
+        lastUpdatedAt: serverTimestamp(),
+        expireAt: Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000),
+      };
+
+      await setDoc(emojiRef, emojiData);
+      setUserEmoji(emojiData);
+      setEmojiList((prevEmojis) => [...prevEmojis, emojiData]);
+    } catch (error) {
+      console.error('Error adding/updating emoji: ', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add/update emoji',
+      });
+    }
+  };
+
+  const updateEmoji = async (updatedEmoji) => {
+    //update weight of emoji firebase
+    try {
+      const emojiRef = doc(firestore, 'emojiMarkers', userId);
+      await updateDoc(emojiRef, {
+        emoji: updatedEmoji.emoji,
+        coordinate: updatedEmoji.coordinate,
+        weight: updatedEmoji.weight,
+        lastUpdatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error updating emoji: ', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update emoji',
+      });
+    }
+  };
+
+  const handleEmojiPress = (emoji) => {
+    const MAX_EMOJI_WEIGHT = 3;
+    const updatedEmoji = {
+      ...emoji,
+      weight: emoji.weight < MAX_EMOJI_WEIGHT ? emoji.weight + 0.1 : MAX_EMOJI_WEIGHT,
+    };
+    if (updatedEmoji.weight === MAX_EMOJI_WEIGHT) {
+      Toast.show({
+        type: 'info',
+        text1: 'Stoooooooooooooooop!',
+        text2: 'I can\'t get bigger!',
+      })
+      return;
+    }
+    updateEmoji(updatedEmoji).then(() => {
+      setUserEmoji(updatedEmoji);
+      setEmojiList((prevEmojis) =>
+        prevEmojis.map((e) =>
+          e.userId === emoji.userId ? updatedEmoji : e
+        )
+      );
+    }).catch((error) => {
+      console.error('Error updating emoji: ', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to update emoji',
+      });
+    });
+  }
+
+  const handleDeleteEmoji = async () => {
+    try {
+      const emojiRef = doc(firestore, 'emojiMarkers', userId);
+      await deleteDoc(emojiRef);
+      setEmojiList((prevEmojis) =>
+        prevEmojis.filter((e) => e.userId !== userId)
+      );
+      setUserEmoji(null);
+      setEmojiPickerVisible(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Emoji Deleted',
+        text2: 'Your emoji has been successfully deleted',
+      });
+      setEmoji('');
+      setUserEmoji(null);
+      setIsChangingEmoji(false);
+    } catch (error) {
+      console.error('Error deleting emoji: ', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to delete emoji',
+      });
+    }
+  };
+
+  const handleAddOrUpdateEmoji = async (selectedEmoji) => {
+    console.log('Selected Emoji: ', selectedEmoji);
+    console.log('Current Location: ', currentLocation);
+    console.log('User Emoji: ', userEmoji);
+    console.log('Emoji List: ', emojiList);
+    console.log('Is Changing Emoji: ', isChangingEmoji);
+    setEmoji(selectedEmoji);
+    setEmojiPickerVisible(false);
+    setRegion({
+      latitude: currentLocation.latitude,
+      longitude: currentLocation.longitude,
+      latitudeDelta: 0.00422,
+      longitudeDelta: 0.00421,
+    })
+
+    if (isChangingEmoji) {
+      console.log('Changing Emoji');
+      console.log(userEmoji) ;
+      const updatedEmoji = { ...userEmoji, emoji: selectedEmoji };
+      setUserEmoji(updatedEmoji);
+      updateEmoji(updatedEmoji);
+      setEmojiList((prevEmojis) =>
+        prevEmojis.map((e) => (e.userId === userId ? updatedEmoji : e))
+      );
+    } else {
+      AddEmoji(selectedEmoji);
+    }
+  };
+
+  function handleEmojiFabPress() {
+    if (userEmoji) {
+      setIsChangingEmoji(true);
+      setEmojiPickerVisible(true);
+    } else {
+      setEmojiPickerVisible(true);
+    }
+  }
 
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <View style={styles.container}>
-        <SearchBar searchText={searchText} handleSearch={handleSearch}/>
-        <Toast style={styles.toast}/>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading...</Text>
-          </View>
-        ) : (
-          <View style={styles.container}>
-            <MapView
-              style={styles.map}
-              customMapStyle={customMapStyle}
-              onLongPress={handleLongPress}
-              showsBuildings={false}
-              showsIndoors={false}
-              cameraZoomRange={{min: 0, max: 20}}
-              minZoomLevel={0}
-              maxZoomLevel={20}
-              region={region}
-              showsUserLocation={showUserLocation}
-              followsUserLocation={false}
-            >
-              {filteredMarkers.map((marker) => (
-                <MarkerComponent
-                  key={marker.id}
-                  marker={marker}
-                  onPress={handleMarkerPress}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  userId={userId}
-                />
-              ))}
-            </MapView>
-            {showFAB && (
-              <TouchableOpacity style={styles.fab} onPress={handleLocatePress} disabled={isLocating}>
-                {isLocating ? (
-                  <ActivityIndicator size="small" color="#0000ff" />
-                ) : (
-                  <Icon name="navigate" size={25} color="#000"/>
-                )}
-              </TouchableOpacity>
-            )}
+        <View style={styles.container}>
+          <SearchBar searchText={searchText} handleSearch={handleSearch}/>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Loading...</Text>
+            </View>
+          ) : (
+            <View style={styles.container}>
+              <MapView
+                style={styles.map}
+                customMapStyle={customMapStyle}
+                onLongPress={handleLongPress}
+                showsBuildings={false}
+                showsIndoors={false}
+                cameraZoomRange={{min: 0, max: 20}}
+                minZoomLevel={0}
+                maxZoomLevel={20}
+                region={region}
+                showsUserLocation={showUserLocation}
+                followsUserLocation={false}
+              >
+                {filteredMarkers.map((marker) => (
+                  <MarkerComponent
+                    marker={marker}
+                    onPress={handleMarkerPress}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    userId={userId}
+                  />
+                ))}
+                {emojiList.map((emoji) => (
+                  <EmojiComponent
+                    key={emoji.id}
+                    marker={emoji}
+                    onPress={handleEmojiPress}
+                    userId={userId}
+                  />
+                ))}
 
-          </View>
-        )}
-        <NoteModal
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          selectedMarker={selectedMarker}
-          noteText={noteText}
-          setNoteText={setNoteText}
-          tags={tags}
-          setTags={setTags}
-          tagText={tagText}
-          setTagText={setTagText}
-          handleSave={handleSave}
-          handleDelete={handleDelete}
-          handleLike={handleLike}
-          handleAddComment={handleAddComment}
-          commentText={commentText}
-          setCommentText={setCommentText}
-          userId={userId}
-          handleAddTag={handleAddTag}
-          handleDeleteTag={handleDeleteTag}
-          searchTags={searchTags}
-          suggestions={suggestions}
-          setSuggestions={setSuggestions}
-          editVisible={editVisible}
-          setEditVisible={setEditVisible}
-          color={color}
-          setColor={setColor}
-          textColor={textColor}
-          setTextColor={setTextColor}
-          imageUris={imageUris}
-          setImageUris={setImageUris}
-          uploadImage={uploadImage}
-          removeImage={removeImage}
-          style={styles.modal}
-          setLikeButtonPressable={setLikeButtonPressable}
-          likeButtonPressable={likeButtonPressable}
-          isNewMarker={isNewMarker}
-          setIsNewMarker={setIsNewMarker}
-        />
-      </View>
+              </MapView>
+
+              <View style={styles.fabContainer}>
+                <TouchableOpacity style={styles.fab} onPress={()=> {
+                  handleEmojiFabPress()
+                }} disabled={isLocating}>
+                  <Icon name="happy-outline" size={25} color="#000"/>
+                </TouchableOpacity>
+                {showFAB && (
+                  <TouchableOpacity style={styles.fab} onPress={handleLocatePress} disabled={isLocating}>
+                    {isLocating ? (
+                      <ActivityIndicator size="small" color="#0000ff" />
+                    ) : (
+                      <Icon name="navigate" size={25} color="#000"/>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
+
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={emojiPickerVisible}
+            onRequestClose={() => {
+              setEmojiPickerVisible(false);
+            }}
+          >
+            <View style={[otherStyles.styles.modalContainer]}>
+              <View style={[otherStyles.styles.modalContent, { width: '80%', height: '60%' }]}>
+                <TouchableOpacity
+                  style={[otherStyles.noteModalStyles.closeButton, { top: 5, right: 5 }]}
+                  onPress={() => setEmojiPickerVisible(false)}
+                >
+                  <Icon name="close-circle-outline" size={30} color="#000" />
+                </TouchableOpacity>
+                <Text style={[otherStyles.styles.h2Text, { alignSelf: 'center' }]}>{!isChangingEmoji ?'Record Your Mood' : 'Update Your Mood'}</Text>
+                <View style={{ flex: 1, marginBottom: 40, marginTop: 20 }}>
+                  <EmojiSelector
+                    category={Categories.emotion}
+                    showTabs={false}
+                    showSearchBar={false}
+                    onEmojiSelected={(emoji) => handleAddOrUpdateEmoji(emoji)}
+                  />
+                </View>
+                {isChangingEmoji && (
+                  <TouchableOpacity
+                    style={[otherStyles.styles.borderedButton, {marginBottom: 0, backgroundColor: colors.pink}]}
+                    onPress={handleDeleteEmoji}
+                  >
+                    <Text style={otherStyles.styles.borderedButtonText}>Delete Mood</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </Modal>
+
+          <NoteModal
+            modalVisible={modalVisible}
+            setModalVisible={setModalVisible}
+            selectedMarker={selectedMarker}
+            noteText={noteText}
+            setNoteText={setNoteText}
+            tags={tags}
+            setTags={setTags}
+            tagText={tagText}
+            setTagText={setTagText}
+            handleSave={handleSave}
+            handleDelete={handleDelete}
+            handleLike={handleLike}
+            handleAddComment={handleAddComment}
+            commentText={commentText}
+            setCommentText={setCommentText}
+            userId={userId}
+            handleAddTag={handleAddTag}
+            handleDeleteTag={handleDeleteTag}
+            searchTags={searchTags}
+            suggestions={suggestions}
+            setSuggestions={setSuggestions}
+            editVisible={editVisible}
+            setEditVisible={setEditVisible}
+            color={color}
+            setColor={setColor}
+            textColor={textColor}
+            setTextColor={setTextColor}
+            imageUris={imageUris}
+            setImageUris={setImageUris}
+            uploadImage={uploadImage}
+            removeImage={removeImage}
+            style={styles.modal}
+            setLikeButtonPressable={setLikeButtonPressable}
+            likeButtonPressable={likeButtonPressable}
+            isNewMarker={isNewMarker}
+            setIsNewMarker={setIsNewMarker}
+          />
+          <Toast style={otherStyles.styles.toast}/>
+        </View>
       </TouchableWithoutFeedback>
     </GestureHandlerRootView>
   );

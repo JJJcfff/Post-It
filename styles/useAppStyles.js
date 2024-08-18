@@ -297,8 +297,10 @@ const useAppStyles = () => {
 
   const mapStyles = StyleSheet.create({
     toast: {
-      zIndex: 99,
       position: 'absolute',
+      bottom: 20,
+      alignSelf: 'center',
+      backgroundColor: colors.primary,
     },
     modal: {
       zIndex: 1,
@@ -310,22 +312,27 @@ const useAppStyles = () => {
       flex: 1,
     },
     fab: {
-      position: 'absolute',
       width: 50,
       height: 50,
       alignItems: 'center',
       justifyContent: 'center',
-      right: 20,
-      bottom: 20,
       borderRadius: 25,
       backgroundColor: colors.primary,
       elevation: 8,
       borderWidth: 2,
       borderColor: colors.secondary,
+      marginBottom: 20,
     },
     fabIcon: {
       width: 24,
       height: 24
+    },
+    fabContainer: {
+      position: 'absolute',
+      bottom: 20,
+      right: 20,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
     },
     loadingContainer: {
       flex: 1,
@@ -738,6 +745,14 @@ const useAppStyles = () => {
     },
     counterText: {
       fontSize: 10,
+    },
+    emojiNoteContainer: {
+      aspectRatio: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.secondary,
+      opacity: 0.8,
     },
   });
 
