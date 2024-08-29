@@ -29,11 +29,13 @@ import useAppStyles from "../styles/useAppStyles";
 import useAppColors from "../styles/useAppColors";
 import Icon from "react-native-vector-icons/Ionicons";
 import EmojiSelector, { Categories } from "react-native-emoji-selector";
+import {useRoute} from "@react-navigation/native";
 
 const firestore = getFirestore(firebaseapp);
 const storage = getStorage(firebaseapp);
 
 const StickyNotesMap = () => {
+  const route = useRoute();
   const [userId, setUserId] = useState('');
   const [loading, setLoading] = useState(false);
   const [markers, setMarkers] = useState([]);
@@ -100,6 +102,26 @@ const StickyNotesMap = () => {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (route.params) {
+      console.log('Selected Note: ', route.params.marker);
+      setSelectedMarker(route.params.marker);
+      setRegion({
+        latitude: route.params.marker.coordinate.latitude,
+        longitude: route.params.marker.coordinate.longitude,
+        latitudeDelta: 0.00422,
+        longitudeDelta: 0.00421,
+      })
+      setNoteText(route.params.marker.text??'');
+      setTags(route.params.marker.tags??[]);
+      setColor(route.params.marker.color??'#FFEB3B');
+      setTextColor(route.params.marker.textColor??'#000000');
+      setImageUris(route.params.marker.imageUris??[]);
+      setEditVisible(false);
+      setModalVisible(true);
+    }
+  }, [route.params]);
 
   useEffect(() => {
     let subscription;
@@ -698,12 +720,15 @@ const StickyNotesMap = () => {
 
   const AddEmoji = async (emoji) => {
     console.log('Adding Emoji');
-    console.log('Emoji: ', emoji);
     if (!emoji) return;
+
     const coordinates = {
       latitude: currentLocation.latitude,
       longitude: currentLocation.longitude,
     }
+
+    const currentTimestamp = serverTimestamp();
+
     try {
       const emojiRef = doc(firestore, 'emojiMarkers', userId);
       const emojiData = {
@@ -711,12 +736,20 @@ const StickyNotesMap = () => {
         emoji: emoji,
         coordinate: coordinates,
         weight: 1,
-        createdAt: userEmoji ? userEmoji.createdAt : serverTimestamp(),
-        lastUpdatedAt: serverTimestamp(),
+        createdAt: userEmoji ? userEmoji.createdAt : currentTimestamp,
+        lastUpdatedAt: currentTimestamp,
         expireAt: Timestamp.fromMillis(Date.now() + 24 * 60 * 60 * 1000),
       };
 
       await setDoc(emojiRef, emojiData);
+
+      // Add to emoji history
+      const emojiHistoryRef = doc(collection(firestore, 'emojiHistory'));
+      await setDoc(emojiHistoryRef, {
+        ...emojiData,
+        createdAt: currentTimestamp,
+      });
+
       setUserEmoji(emojiData);
       setEmojiList((prevEmojis) => [...prevEmojis, emojiData]);
     } catch (error) {
@@ -728,9 +761,7 @@ const StickyNotesMap = () => {
       });
     }
   };
-
   const updateEmoji = async (updatedEmoji) => {
-    //update weight of emoji firebase
     try {
       const emojiRef = doc(firestore, 'emojiMarkers', userId);
       await updateDoc(emojiRef, {
@@ -739,6 +770,14 @@ const StickyNotesMap = () => {
         weight: updatedEmoji.weight,
         lastUpdatedAt: serverTimestamp(),
       });
+
+      // Add to emoji history
+      const emojiHistoryRef = doc(collection(firestore, 'emojiHistory'));
+      await setDoc(emojiHistoryRef, {
+        ...updatedEmoji,
+        createdAt: serverTimestamp(),
+      });
+
     } catch (error) {
       console.error('Error updating emoji: ', error);
       Toast.show({
@@ -748,6 +787,7 @@ const StickyNotesMap = () => {
       });
     }
   };
+
 
   const handleEmojiPress = (emoji) => {
     const MAX_EMOJI_WEIGHT = 3;
@@ -867,11 +907,13 @@ const StickyNotesMap = () => {
                 minZoomLevel={0}
                 maxZoomLevel={20}
                 region={region}
+                onRegionChangeComplete={setRegion}
                 showsUserLocation={showUserLocation}
                 followsUserLocation={false}
               >
                 {filteredMarkers.map((marker) => (
                   <MarkerComponent
+                    key={marker.id}
                     marker={marker}
                     onPress={handleMarkerPress}
                     onDragStart={handleDragStart}

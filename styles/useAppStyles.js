@@ -466,7 +466,7 @@ const useAppStyles = () => {
     commentRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginBottom: 10,
+      marginBottom: 20,
       width: '100%',
     },
     commentInput: {
@@ -756,13 +756,79 @@ const useAppStyles = () => {
     },
   });
 
+  const homeStyles  = StyleSheet.create({
+    section: {
+      marginBottom: 25,
+      borderWidth:2,
+      borderColor:colors.secondary,
+      borderRadius: 10,
+      elevation: 15,
+      padding: 10,
+    },
+
+    noteItem: {
+      padding: 10,
+      borderRadius: 8,
+      marginRight: 5,
+      elevation: 5,
+      marginHorizontal: 5,
+      height: 200,
+      width: 200,
+    },
+
+    timeAxisContainer: {
+      marginTop: 10,
+      paddingVertical: 10,
+      borderRadius: 5,
+      backgroundColor: '#f9f9f9',
+    },
+    timeAxis: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    emojiText: {
+      fontSize: 32,
+      marginBottom: 5,
+    },
+    emojiItem: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+      backgroundColor: colors.primary,
+      borderRadius: 5,
+      borderWidth: 1,
+      borderColor: colors.secondary,
+      height: 100,
+    },
+
+    gapItem: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#e0e0e0',
+      borderRadius: 5,
+      marginRight: 2,
+      height: '100%',
+    },
+    timeLabels: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 5,
+    },
+    timeLabelContainer: {
+      alignItems: 'center',
+      width: 50,
+    },
+
+  });
+
 
   return { styles: generalStyles, typography, spacing,
     settingStyles,
     landingStyles,
-  mapStyles,
+    mapStyles,
     noteModalStyles,
     markerStyles,
+    homeStyles,
   };
 };
 
