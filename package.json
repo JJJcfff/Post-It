@@ -46,6 +46,7 @@
     "react-native-screens": "3.31.1",
     "react-native-slider-color-picker": "^2.2.6",
     "react-native-svg": "^15.2.0",
+    "react-native-svg-pan-zoom": "^0.1.2",
     "react-native-text-size": "^4.0.0-rc.1",
     "react-native-toast-message": "^2.2.0",
     "react-native-vector-icons": "^10.1.0",

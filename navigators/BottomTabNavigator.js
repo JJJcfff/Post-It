@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
 import HomeScreen from '../screens/Home';
 import SettingsScreen from '../screens/Settings';
-import StickyNotesMap from '../screens/StickyNotesMap';
+import EducationalMap from '../screens/EducationalMap';
 import ChatStackNavigator from './ChatStackNavigator';
 
 const Tab = createBottomTabNavigator();
@@ -30,7 +30,7 @@ function BottomTabNavigator() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Map" component={StickyNotesMap} />
+      <Tab.Screen name="Map" component={EducationalMap} />
       <Tab.Screen name="Chat" component={ChatStackNavigator} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
