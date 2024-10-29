@@ -756,6 +756,21 @@ const useAppStyles = () => {
     },
   });
 
+  const modalStyles = StyleSheet.create({
+    modalContent: {
+      backgroundColor: colors.primary,
+      padding: 20,
+      margin: 20,
+      borderRadius: 10,
+    },
+    modalContainer: {
+      flex:1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+  });
+
   const homeStyles  = StyleSheet.create({
     section: {
       marginBottom: 25,
@@ -826,6 +841,7 @@ const useAppStyles = () => {
     settingStyles,
     landingStyles,
     mapStyles,
+    modalStyles,
     noteModalStyles,
     markerStyles,
     homeStyles,
