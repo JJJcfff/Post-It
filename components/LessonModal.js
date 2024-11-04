@@ -11,6 +11,7 @@ import {
 import useAppStyles from '../styles/useAppStyles';
 import useAppColors from '../styles/useAppColors';
 import Icon from 'react-native-vector-icons/Ionicons';
+import QuizModal from './QuizModal';
 
 const LessonModal = ({ visible, onClose, onSave, selectedMarker, userId }) => {
   const [lessonTitle, setLessonTitle] = useState('');
@@ -19,6 +20,7 @@ const LessonModal = ({ visible, onClose, onSave, selectedMarker, userId }) => {
   const [tagText, setTagText] = useState('');
   const colors = useAppColors();
   const styles = useAppStyles().modalStyles;
+  const [quizModalVisible, setQuizModalVisible] = useState(false);
 
   const handleAddTag = () => {
     if (tagText.trim() !== '' && !tags.includes(tagText.trim())) {
@@ -98,8 +100,29 @@ const LessonModal = ({ visible, onClose, onSave, selectedMarker, userId }) => {
           <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
             <Text style={styles.saveButtonText}>Save Lesson</Text>
           </TouchableOpacity>
+          {/* Button to open Quiz Modal */}
+          <TouchableOpacity onPress={() => setQuizModalVisible(true)} style={styles.quizButton}>
+            <Text style={styles.quizButtonText}>Open Quiz</Text>
+          </TouchableOpacity>
         </ScrollView>
       </View>
+
+
+
+      {/* Quiz Modal inside Lesson Modal */}
+      <Modal
+        visible={quizModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setQuizModalVisible(false)}
+      >
+        <QuizModal
+          visible={quizModalVisible}
+          onClose={() => setQuizModalVisible(false)}
+          onComplete={() => console.log("Quiz Completed")}
+          selectedMarker={{ lessonData: { title: lessonTitle, quiz: [{ question: 'Example Question', options: ['Option 1', 'Option 2'] }] } }}
+        />
+      </Modal>
     </View>
   );
 };

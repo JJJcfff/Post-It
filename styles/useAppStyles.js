@@ -760,11 +760,13 @@ const useAppStyles = () => {
     modalContent: {
       backgroundColor: colors.primary,
       padding: 20,
-      margin: 20,
+      marginHorizontal: 20, 
+      width: '90%',          
+      maxHeight: '60%',      
       borderRadius: 10,
     },
     modalContainer: {
-      flex:1,
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: 'rgba(0,0,0,0.5)',
